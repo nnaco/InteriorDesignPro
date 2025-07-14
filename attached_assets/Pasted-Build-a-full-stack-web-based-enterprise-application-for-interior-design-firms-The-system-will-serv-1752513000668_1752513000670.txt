@@ -1,0 +1,125 @@
+Build a full-stack, web-based enterprise application for interior design firms. The system will serve as a centralized platform to manage projects, schedule tasks, allocate resources, track milestones, manage teams, and collaborate with clients in real time.
+
+The application must emphasize usability, real-time communication, timeline management, secure document handling, and compliance with data protection regulations. It should support multi-tenant usage, mobile access, and integration with third-party design tools and business software. The platform must also implement robust security protocols to protect sensitive client data and project information.
+
+📦 Core Functional Requirements:
+1. Project & Task Management
+Project creation with detailed briefs, milestones, budgets, and timelines
+
+Task assignment to teams or individuals with deadlines and progress tracking
+
+Visual timeline tools (e.g., Gantt chart or Kanban board)
+
+Upload and manage design assets (images, drawings, 3D files)
+
+2. Workforce Management
+Team scheduling, attendance tracking, and availability status
+
+Role-based access control (e.g., Manager, Designer, Contractor, Client)
+
+Performance tracking (manual input/report-based)
+
+Staff directory and contact management
+
+3. Resource & Inventory Tracking
+Material inventory tracking and consumption logging
+
+Supplier and vendor database
+
+Purchase order management
+
+Cost tracking and procurement logging
+
+4. Timeline & Scheduling System
+Central calendar for team and project deadlines
+
+Timeline adjustment tools with dependency mapping
+
+Meeting scheduling and task reminders
+
+Conflict and delay flagging (based on static rules)
+
+5. Collaboration & Communication
+Internal messaging/chat system
+
+Document sharing and file version control
+
+Commenting system for tasks and designs
+
+Meeting minutes and action tracker
+
+6. Client Management
+Client login with limited access to assigned projects
+
+Design approvals, comment threads, and invoice visibility
+
+Secure file access and history log
+
+Personalized dashboard view per client
+
+🔐 Security & Data Protection Requirements:
+Role-Based Access Control (RBAC)
+
+Two-Factor Authentication (2FA)
+
+End-to-End Encryption for stored and transmitted data
+
+Activity Logging & Audit Trail
+
+Compliance with international data protection standards (e.g., GDPR, CCPA)
+
+Daily Backups and Disaster Recovery Plan
+
+🧱 System Architecture & Tech Stack:
+🔹 Frontend
+React.js or Vue.js with TypeScript
+
+Redux or Context API for state management
+
+Material UI or Tailwind CSS for design
+
+Chart.js or D3.js for basic data visualizations
+
+PWA support for offline access
+
+🔹 Backend
+Node.js with Express OR Django/FastAPI
+
+PostgreSQL for structured data
+
+MongoDB (optional) for flexible file/asset storage
+
+RESTful APIs with GraphQL support
+
+File handling via AWS S3 or GCP Storage
+
+🔹 Infrastructure
+Docker containers with Kubernetes (optional for scaling)
+
+Hosted on AWS, Google Cloud, or Azure
+
+GitHub Actions or GitLab CI for CI/CD
+
+Monitoring tools (Prometheus, Grafana, or similar)
+
+📲 Cross-Platform Support
+Progressive Web Application (PWA) with mobile responsiveness
+
+Device-aware layout (desktop, tablet, phone)
+
+Push notification system for updates and alerts
+
+Mobile camera access for progress photo uploads
+
+GPS-based check-in/log for field workers (optional)
+
+🔌 Third-Party Integrations
+AutoCAD, SketchUp, and Revit file viewers or plugins
+
+Google Workspace / Microsoft 365 integration (Docs, Calendar, Drive)
+
+Integration with popular CRMs and accounting systems
+
+Stripe/Paystack/Flutterwave for invoice and payment management
+
+Optional WhatsApp and email integration for external notifications
