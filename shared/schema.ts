@@ -78,11 +78,19 @@ export const projectMembers = pgTable("project_members", {
 
 export const documents = pgTable("documents", {
   id: uuid("id").primaryKey().defaultRandom(),
-  name: varchar("name", { length: 255 }).notNull(),
-  fileName: varchar("file_name", { length: 255 }).notNull(),
+  name: varchar("name", { length: 255 }),
+  fileName: varchar("file_name", { length: 255 }),
+  filename: varchar("filename", { length: 255 }).notNull(),
+  originalName: varchar("original_name", { length: 255 }).notNull(),
+  mimeType: varchar("mime_type", { length: 100 }).notNull(),
   fileType: varchar("file_type", { length: 50 }),
   fileSize: integer("file_size"),
+  size: integer("size").notNull(),
   filePath: text("file_path").notNull(),
+  checksum: varchar("checksum", { length: 64 }),
+  version: integer("version").default(1),
+  parentDocumentId: uuid("parent_document_id").references(() => documents.id),
+  description: text("description").default(""),
   projectId: uuid("project_id").references(() => projects.id),
   uploadedBy: varchar("uploaded_by").references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
@@ -105,6 +113,7 @@ export const notifications = pgTable("notifications", {
   type: varchar("type").default("info"), // info, success, warning, error
   userId: varchar("user_id").references(() => users.id),
   isRead: boolean("is_read").default(false),
+  metadata: jsonb("metadata"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

@@ -24,7 +24,7 @@ import {
   type ProjectMember,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, or, ilike, sql } from "drizzle-orm";
+import { eq, desc, and, or, ilike, sql, ne, gte, lte } from "drizzle-orm";
 
 export interface IStorage {
   // User operations (required for Replit Auth)
@@ -194,15 +194,17 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getTasks(projectId?: string, userId?: string): Promise<Task[]> {
-    let query = db.select().from(tasks);
-    
     if (projectId) {
-      query = query.where(eq(tasks.projectId, projectId));
+      return await db.select().from(tasks)
+        .where(eq(tasks.projectId, projectId))
+        .orderBy(desc(tasks.createdAt));
     } else if (userId) {
-      query = query.where(eq(tasks.assigneeId, userId));
+      return await db.select().from(tasks)
+        .where(eq(tasks.assigneeId, userId))
+        .orderBy(desc(tasks.createdAt));
     }
     
-    return await query.orderBy(desc(tasks.createdAt));
+    return await db.select().from(tasks).orderBy(desc(tasks.createdAt));
   }
 
   async getTask(id: string): Promise<Task | undefined> {
@@ -234,13 +236,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getDocuments(projectId?: string): Promise<Document[]> {
-    let query = db.select().from(documents);
-    
     if (projectId) {
-      query = query.where(eq(documents.projectId, projectId));
+      return await db.select().from(documents)
+        .where(eq(documents.projectId, projectId))
+        .orderBy(desc(documents.createdAt));
     }
     
-    return await query.orderBy(desc(documents.createdAt));
+    return await db.select().from(documents).orderBy(desc(documents.createdAt));
   }
 
   async getDocument(id: string): Promise<Document | undefined> {
@@ -278,7 +280,8 @@ export class DatabaseStorage implements IStorage {
       const otherUserId = msg.senderId === userId ? msg.recipientId : msg.senderId;
       const key = msg.conversationId || otherUserId;
       
-      if (!acc[key] || new Date(msg.lastMessageTime) > new Date(acc[key].lastMessageTime)) {
+      if (!acc[key] || (msg.lastMessageTime && acc[key]?.lastMessageTime && 
+          new Date(msg.lastMessageTime) > new Date(acc[key].lastMessageTime))) {
         acc[key] = { ...msg, otherUserId };
       }
       return acc;
@@ -312,6 +315,56 @@ export class DatabaseStorage implements IStorage {
       .where(eq(notifications.userId, userId))
       .orderBy(desc(notifications.createdAt))
       .limit(50);
+  }
+
+  async markNotificationAsRead(id: string): Promise<void> {
+    await db.update(notifications).set({ isRead: true }).where(eq(notifications.id, id));
+  }
+
+  async markAllNotificationsAsRead(userId: string): Promise<void> {
+    await db.update(notifications).set({ isRead: true }).where(eq(notifications.userId, userId));
+  }
+
+  // Additional methods needed by services
+  async getUsers(): Promise<User[]> {
+    return await db.select().from(users);
+  }
+
+  async updateUserRole(userId: string, role: string): Promise<void> {
+    await db.update(users).set({ role }).where(eq(users.id, userId));
+  }
+
+  async getDocumentVersions(documentId: string): Promise<Document[]> {
+    return await db.select().from(documents)
+      .where(eq(documents.parentDocumentId, documentId))
+      .orderBy(desc(documents.version));
+  }
+
+  async getDocumentByChecksum(checksum: string, projectId: string): Promise<Document | undefined> {
+    const [document] = await db.select().from(documents)
+      .where(and(eq(documents.checksum, checksum), eq(documents.projectId, projectId)));
+    return document;
+  }
+
+  async getAllDocuments(): Promise<Document[]> {
+    return await db.select().from(documents);
+  }
+
+  async getTasksDueBetween(startDate: Date, endDate: Date): Promise<Task[]> {
+    return await db.select().from(tasks)
+      .where(and(
+        gte(tasks.dueDate, startDate.toISOString()),
+        lte(tasks.dueDate, endDate.toISOString()),
+        ne(tasks.status, 'done')
+      ));
+  }
+
+  async getOverdueTasks(): Promise<Task[]> {
+    return await db.select().from(tasks)
+      .where(and(
+        lte(tasks.dueDate, new Date().toISOString()),
+        ne(tasks.status, 'done')
+      ));
   }
 
   async markNotificationAsRead(id: string): Promise<void> {

@@ -11,9 +11,18 @@ import {
   insertNotificationSchema,
   insertActivitySchema,
 } from "@shared/schema";
+import { errorHandler, asyncHandler, validateRequest, CustomError } from './middleware/errorHandler';
+import { setupSecurity } from './middleware/security';
+import { requestLogger, healthCheck, monitoringService } from './middleware/monitoring';
+import { analyticsService } from './services/analyticsService';
+import { emailService } from './services/emailService';
+import { notificationService } from './services/notificationService';
+import { fileService } from './services/fileService';
+import { config } from './config/environment';
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import { z } from 'zod';
 
 // Configure multer for file uploads
 const uploadDir = path.join(process.cwd(), "uploads");
@@ -37,6 +46,10 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Security and monitoring middleware
+  setupSecurity(app);
+  app.use(requestLogger);
+  
   // Auth middleware
   await setupAuth(app);
 
@@ -80,17 +93,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  // Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      res.json(user);
-    } catch (error) {
-      console.error("Error fetching user:", error);
-      res.status(500).json({ message: "Failed to fetch user" });
-    }
+  // Health check endpoint (no auth required)
+  app.get('/api/health', (req, res) => {
+    const health = healthCheck();
+    res.status(health.status === 'healthy' ? 200 : 503).json(health);
   });
+
+  // System metrics (admin only)
+  app.get('/api/metrics', isAuthenticated, asyncHandler(async (req: any, res) => {
+    const user = await storage.getUser(req.user.claims.sub);
+    if (user?.role !== 'admin') {
+      throw new CustomError('Insufficient permissions', 403);
+    }
+    
+    const metrics = monitoringService.getMetrics();
+    const recentLogs = monitoringService.getRecentLogs(100);
+    const errorLogs = monitoringService.getErrorLogs(50);
+    const requestsByEndpoint = monitoringService.getRequestsByEndpoint();
+    
+    res.json({
+      metrics,
+      recentLogs,
+      errorLogs,
+      requestsByEndpoint
+    });
+  }));
+
+  // Auth routes
+  app.get('/api/auth/user', isAuthenticated, asyncHandler(async (req: any, res) => {
+    const userId = req.user.claims.sub;
+    const user = await storage.getUser(userId);
+    if (!user) {
+      throw new CustomError('User not found', 404);
+    }
+    res.json(user);
+  }));
 
   // Project routes
   app.get('/api/projects', isAuthenticated, async (req: any, res) => {
@@ -429,6 +466,106 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch dashboard stats" });
     }
   });
+
+  // Analytics routes
+  app.get('/api/analytics', isAuthenticated, asyncHandler(async (req: any, res) => {
+    const { startDate, endDate, userId } = req.query;
+    const analytics = await analyticsService.getComprehensiveAnalytics(
+      startDate ? new Date(startDate) : undefined,
+      endDate ? new Date(endDate) : undefined,
+      userId
+    );
+    res.json(analytics);
+  }));
+
+  app.get('/api/dashboard/stats', isAuthenticated, asyncHandler(async (req: any, res) => {
+    const [projects, tasks, documents] = await Promise.all([
+      storage.getProjects(),
+      storage.getTasks(),
+      storage.getDocuments()
+    ]);
+
+    const stats = {
+      activeProjects: projects.filter(p => p.status === 'active').length.toString(),
+      pendingTasks: tasks.filter(t => t.status !== 'done').length.toString(),
+      completedTasks: tasks.filter(t => t.status === 'done').length.toString(),
+      totalDocuments: documents.length.toString(),
+    };
+
+    res.json(stats);
+  }));
+
+  // Notification routes
+  app.get('/api/notifications', isAuthenticated, asyncHandler(async (req: any, res) => {
+    const notifications = await storage.getNotifications(req.user.claims.sub);
+    res.json(notifications);
+  }));
+
+  app.patch('/api/notifications/:id/read', isAuthenticated, asyncHandler(async (req: any, res) => {
+    await storage.markNotificationAsRead(req.params.id);
+    res.json({ success: true });
+  }));
+
+  app.post('/api/notifications/mark-all-read', isAuthenticated, asyncHandler(async (req: any, res) => {
+    await storage.markAllNotificationsAsRead(req.user.claims.sub);
+    res.json({ success: true });
+  }));
+
+  // File management enhancement routes
+  app.get('/api/documents/:id/versions', isAuthenticated, asyncHandler(async (req: any, res) => {
+    const versions = await fileService.getFileVersions(req.params.id);
+    res.json(versions);
+  }));
+
+  app.post('/api/documents/:id/versions', isAuthenticated, upload.single('file'), asyncHandler(async (req: any, res) => {
+    if (!req.file) {
+      throw new CustomError('No file uploaded', 400);
+    }
+
+    const versionId = await fileService.createFileVersion(
+      req.params.id,
+      req.file.buffer,
+      req.file.originalname,
+      req.user.claims.sub
+    );
+
+    res.json({ id: versionId, success: true });
+  }));
+
+  app.get('/api/documents/:id/organize', isAuthenticated, asyncHandler(async (req: any, res) => {
+    const organized = await fileService.organizeFiles(req.params.id);
+    res.json(organized);
+  }));
+
+  app.get('/api/storage/stats', isAuthenticated, asyncHandler(async (req: any, res) => {
+    const { projectId } = req.query;
+    const stats = await fileService.getStorageStats(projectId);
+    res.json(stats);
+  }));
+
+  // User management routes
+  app.get('/api/users', isAuthenticated, asyncHandler(async (req: any, res) => {
+    const users = await storage.getUsers();
+    res.json(users);
+  }));
+
+  app.put('/api/users/:id/role', isAuthenticated, asyncHandler(async (req: any, res) => {
+    const currentUser = await storage.getUser(req.user.claims.sub);
+    if (currentUser?.role !== 'admin') {
+      throw new CustomError('Insufficient permissions', 403);
+    }
+
+    const { role } = req.body;
+    if (!['admin', 'manager', 'designer', 'contractor', 'client'].includes(role)) {
+      throw new CustomError('Invalid role', 400);
+    }
+
+    await storage.updateUserRole(req.params.id, role);
+    res.json({ success: true });
+  }));
+
+  // Add global error handler at the end
+  app.use(errorHandler);
 
   return httpServer;
 }
