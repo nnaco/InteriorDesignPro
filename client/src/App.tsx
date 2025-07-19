@@ -16,6 +16,8 @@ import Calendar from "@/pages/Calendar";
 import Messages from "@/pages/Messages";
 import Settings from "@/pages/Settings";
 import Admin from "@/pages/Admin";
+import ProjectManagement from "@/pages/ProjectManagement";
+import ClientPortalPage from "@/pages/ClientPortalPage";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -29,6 +31,8 @@ function Router() {
           <Route path="/" component={Dashboard} />
           <Route path="/projects" component={Projects} />
           <Route path="/projects/:id" component={Projects} />
+          <Route path="/project-management" component={ProjectManagement} />
+          <Route path="/client-portal" component={ClientPortalPage} />
           <Route path="/tasks" component={Tasks} />
           <Route path="/team" component={Team} />
           <Route path="/documents" component={Documents} />

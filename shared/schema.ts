@@ -127,6 +127,97 @@ export const activities = pgTable("activities", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Time tracking tables
+export const timeEntries = pgTable("time_entries", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  taskId: uuid("task_id").references(() => tasks.id),
+  projectId: uuid("project_id").references(() => projects.id),
+  userId: varchar("user_id").references(() => users.id),
+  startTime: timestamp("start_time").notNull(),
+  endTime: timestamp("end_time"),
+  duration: integer("duration").default(0), // in seconds
+  description: text("description"),
+  isRunning: boolean("is_running").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Invoice tables
+export const invoices = pgTable("invoices", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  invoiceNumber: varchar("invoice_number", { length: 50 }).notNull().unique(),
+  projectId: uuid("project_id").references(() => projects.id),
+  clientId: varchar("client_id").references(() => users.id),
+  status: varchar("status").default("draft"), // draft, sent, paid, overdue
+  issueDate: timestamp("issue_date").defaultNow(),
+  dueDate: timestamp("due_date").notNull(),
+  subtotal: decimal("subtotal", { precision: 10, scale: 2 }).default("0"),
+  taxRate: decimal("tax_rate", { precision: 5, scale: 2 }).default("0"),
+  taxAmount: decimal("tax_amount", { precision: 10, scale: 2 }).default("0"),
+  total: decimal("total", { precision: 10, scale: 2 }).default("0"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const invoiceItems = pgTable("invoice_items", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  invoiceId: uuid("invoice_id").references(() => invoices.id),
+  description: varchar("description", { length: 255 }).notNull(),
+  quantity: decimal("quantity", { precision: 10, scale: 2 }).notNull(),
+  rate: decimal("rate", { precision: 10, scale: 2 }).notNull(),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Project templates
+export const projectTemplates = pgTable("project_templates", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  category: varchar("category", { length: 100 }),
+  estimatedDuration: integer("estimated_duration"), // in days
+  estimatedBudget: decimal("estimated_budget", { precision: 10, scale: 2 }),
+  isPublic: boolean("is_public").default(false),
+  createdBy: varchar("created_by").references(() => users.id),
+  usageCount: integer("usage_count").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const templateTasks = pgTable("template_tasks", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  templateId: uuid("template_id").references(() => projectTemplates.id),
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description"),
+  estimatedHours: integer("estimated_hours"),
+  phase: varchar("phase", { length: 100 }),
+  priority: varchar("priority").default("medium"),
+  orderIndex: integer("order_index").default(0),
+  dependencies: jsonb("dependencies"), // Array of task IDs
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const templateMilestones = pgTable("template_milestones", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  templateId: uuid("template_id").references(() => projectTemplates.id),
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description"),
+  daysFromStart: integer("days_from_start").notNull(),
+  orderIndex: integer("order_index").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Client portal access
+export const clientPortalAccess = pgTable("client_portal_access", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  clientId: varchar("client_id").references(() => users.id),
+  projectId: uuid("project_id").references(() => projects.id),
+  accessLevel: varchar("access_level").default("view"), // view, comment, upload
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   projects: many(projects),
@@ -270,3 +361,19 @@ export type Notification = typeof notifications.$inferSelect;
 export type InsertActivity = z.infer<typeof insertActivitySchema>;
 export type Activity = typeof activities.$inferSelect;
 export type ProjectMember = typeof projectMembers.$inferSelect;
+
+// New type exports
+export type TimeEntry = typeof timeEntries.$inferSelect;
+export type InsertTimeEntry = typeof timeEntries.$inferInsert;
+export type Invoice = typeof invoices.$inferSelect;
+export type InsertInvoice = typeof invoices.$inferInsert;
+export type InvoiceItem = typeof invoiceItems.$inferSelect;
+export type InsertInvoiceItem = typeof invoiceItems.$inferInsert;
+export type ProjectTemplate = typeof projectTemplates.$inferSelect;
+export type InsertProjectTemplate = typeof projectTemplates.$inferInsert;
+export type TemplateTask = typeof templateTasks.$inferSelect;
+export type InsertTemplateTask = typeof templateTasks.$inferInsert;
+export type TemplateMilestone = typeof templateMilestones.$inferSelect;
+export type InsertTemplateMilestone = typeof templateMilestones.$inferInsert;
+export type ClientPortalAccess = typeof clientPortalAccess.$inferSelect;
+export type InsertClientPortalAccess = typeof clientPortalAccess.$inferInsert;

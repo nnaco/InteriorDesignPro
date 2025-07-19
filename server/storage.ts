@@ -7,6 +7,13 @@ import {
   notifications,
   activities,
   projectMembers,
+  timeEntries,
+  invoices,
+  invoiceItems,
+  projectTemplates,
+  templateTasks,
+  templateMilestones,
+  clientPortalAccess,
   type User,
   type UpsertUser,
   type Project,
@@ -22,6 +29,20 @@ import {
   type Activity,
   type InsertActivity,
   type ProjectMember,
+  type TimeEntry,
+  type InsertTimeEntry,
+  type Invoice,
+  type InsertInvoice,
+  type InvoiceItem,
+  type InsertInvoiceItem,
+  type ProjectTemplate,
+  type InsertProjectTemplate,
+  type TemplateTask,
+  type InsertTemplateTask,
+  type TemplateMilestone,
+  type InsertTemplateMilestone,
+  type ClientPortalAccess,
+  type InsertClientPortalAccess,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, ilike, sql, ne, gte, lte } from "drizzle-orm";
@@ -421,6 +442,152 @@ export class DatabaseStorage implements IStorage {
       teamMembers: totalTeamMembers.count || 0,
       budgetUtilization: 68, // This could be calculated based on actual budget data
     };
+  }
+
+  // Time Tracking operations
+  async createTimeEntry(timeEntry: InsertTimeEntry): Promise<TimeEntry> {
+    const [entry] = await db.insert(timeEntries).values(timeEntry).returning();
+    return entry;
+  }
+
+  async getTimeEntries(filters: { taskId?: string; projectId?: string; userId?: string }): Promise<TimeEntry[]> {
+    const conditions = [];
+    if (filters.taskId) conditions.push(eq(timeEntries.taskId, filters.taskId));
+    if (filters.projectId) conditions.push(eq(timeEntries.projectId, filters.projectId));
+    if (filters.userId) conditions.push(eq(timeEntries.userId, filters.userId));
+
+    return await db.select().from(timeEntries)
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
+      .orderBy(desc(timeEntries.startTime));
+  }
+
+  async getActiveTimeEntry(userId: string): Promise<TimeEntry | undefined> {
+    const [entry] = await db.select().from(timeEntries)
+      .where(and(eq(timeEntries.userId, userId), eq(timeEntries.isRunning, true)));
+    return entry;
+  }
+
+  async stopTimeEntry(entryId: string, endTime: Date, duration: number): Promise<void> {
+    await db.update(timeEntries)
+      .set({ endTime, duration, isRunning: false })
+      .where(eq(timeEntries.id, entryId));
+  }
+
+  // Invoice operations
+  async createInvoice(invoice: InsertInvoice): Promise<Invoice> {
+    const [newInvoice] = await db.insert(invoices).values(invoice).returning();
+    return newInvoice;
+  }
+
+  async getInvoices(filters: { projectId?: string; clientId?: string }): Promise<Invoice[]> {
+    const conditions = [];
+    if (filters.projectId) conditions.push(eq(invoices.projectId, filters.projectId));
+    if (filters.clientId) conditions.push(eq(invoices.clientId, filters.clientId));
+
+    return await db.select().from(invoices)
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
+      .orderBy(desc(invoices.createdAt));
+  }
+
+  async createInvoiceItem(item: InsertInvoiceItem): Promise<InvoiceItem> {
+    const [newItem] = await db.insert(invoiceItems).values(item).returning();
+    return newItem;
+  }
+
+  async getInvoiceItems(invoiceId: string): Promise<InvoiceItem[]> {
+    return await db.select().from(invoiceItems)
+      .where(eq(invoiceItems.invoiceId, invoiceId));
+  }
+
+  // Project Template operations
+  async createProjectTemplate(template: InsertProjectTemplate): Promise<ProjectTemplate> {
+    const [newTemplate] = await db.insert(projectTemplates).values(template).returning();
+    return newTemplate;
+  }
+
+  async getProjectTemplates(): Promise<ProjectTemplate[]> {
+    return await db.select().from(projectTemplates)
+      .orderBy(desc(projectTemplates.usageCount), desc(projectTemplates.createdAt));
+  }
+
+  async getProjectTemplate(id: string): Promise<ProjectTemplate | undefined> {
+    const [template] = await db.select().from(projectTemplates)
+      .where(eq(projectTemplates.id, id));
+    return template;
+  }
+
+  async incrementTemplateUsage(id: string): Promise<void> {
+    await db.update(projectTemplates)
+      .set({ usageCount: sql`${projectTemplates.usageCount} + 1` })
+      .where(eq(projectTemplates.id, id));
+  }
+
+  async createTemplateTasks(tasks: InsertTemplateTask[]): Promise<TemplateTask[]> {
+    return await db.insert(templateTasks).values(tasks).returning();
+  }
+
+  async getTemplateTasks(templateId: string): Promise<TemplateTask[]> {
+    return await db.select().from(templateTasks)
+      .where(eq(templateTasks.templateId, templateId))
+      .orderBy(templateTasks.orderIndex);
+  }
+
+  async createTemplateMilestones(milestones: InsertTemplateMilestone[]): Promise<TemplateMilestone[]> {
+    return await db.insert(templateMilestones).values(milestones).returning();
+  }
+
+  async getTemplateMilestones(templateId: string): Promise<TemplateMilestone[]> {
+    return await db.select().from(templateMilestones)
+      .where(eq(templateMilestones.templateId, templateId))
+      .orderBy(templateMilestones.orderIndex);
+  }
+
+  // Client Portal operations
+  async createClientPortalAccess(access: InsertClientPortalAccess): Promise<ClientPortalAccess> {
+    const [newAccess] = await db.insert(clientPortalAccess).values(access).returning();
+    return newAccess;
+  }
+
+  async getClientPortalAccess(clientId: string): Promise<ClientPortalAccess[]> {
+    return await db.select().from(clientPortalAccess)
+      .where(and(eq(clientPortalAccess.clientId, clientId), eq(clientPortalAccess.isActive, true)));
+  }
+
+  async getClientProjects(clientId: string): Promise<Project[]> {
+    return await db.select({
+      id: projects.id,
+      name: projects.name,
+      description: projects.description,
+      status: projects.status,
+      budget: projects.budget,
+      startDate: projects.startDate,
+      dueDate: projects.dueDate,
+      createdAt: projects.createdAt,
+      updatedAt: projects.updatedAt,
+      createdBy: projects.createdBy,
+      clientId: projects.clientId,
+      progress: projects.progress,
+    }).from(projects)
+      .innerJoin(clientPortalAccess, eq(projects.id, clientPortalAccess.projectId))
+      .where(and(
+        eq(clientPortalAccess.clientId, clientId),
+        eq(clientPortalAccess.isActive, true)
+      ));
+  }
+
+  async getClientDocuments(clientId: string): Promise<Document[]> {
+    return await db.select().from(documents)
+      .innerJoin(clientPortalAccess, eq(documents.projectId, clientPortalAccess.projectId))
+      .where(and(
+        eq(clientPortalAccess.clientId, clientId),
+        eq(clientPortalAccess.isActive, true)
+      ));
+  }
+
+  async getClientInvoices(clientId: string): Promise<Invoice[]> {
+    return await db.select().from(invoices)
+      .where(eq(invoices.clientId, clientId))
+      .orderBy(desc(invoices.createdAt));
   }
 }
 

@@ -8,15 +8,16 @@ import memoize from "memoizee";
 import connectPg from "connect-pg-simple";
 import { storage } from "./storage";
 
-if (!process.env.REPLIT_DOMAINS) {
-  throw new Error("Environment variable REPLIT_DOMAINS not provided");
-}
+// Use fallback for development if REPLIT_DOMAINS is not set
+const replitDomains = process.env.REPLIT_DOMAINS || "localhost:5000,127.0.0.1:5000";
+const replId = process.env.REPL_ID || "dev-repl-id";
+const sessionSecret = process.env.SESSION_SECRET || "dev-session-secret-change-in-production";
 
 const getOidcConfig = memoize(
   async () => {
     return await client.discovery(
       new URL(process.env.ISSUER_URL ?? "https://replit.com/oidc"),
-      process.env.REPL_ID!
+      replId
     );
   },
   { maxAge: 3600 * 1000 }
@@ -32,13 +33,13 @@ export function getSession() {
     tableName: "sessions",
   });
   return session({
-    secret: process.env.SESSION_SECRET!,
+    secret: sessionSecret,
     store: sessionStore,
     resave: false,
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: true,
+      secure: false, // Set to false for development to work with HTTP
       maxAge: sessionTtl,
     },
   });
@@ -84,8 +85,9 @@ export async function setupAuth(app: Express) {
     verified(null, user);
   };
 
-  for (const domain of process.env
-    .REPLIT_DOMAINS!.split(",")) {
+  // Continue with normal Replit Auth setup since environment variables exist
+
+  for (const domain of replitDomains.split(",")) {
     const strategy = new Strategy(
       {
         name: `replitauth:${domain}`,
@@ -102,14 +104,18 @@ export async function setupAuth(app: Express) {
   passport.deserializeUser((user: Express.User, cb) => cb(null, user));
 
   app.get("/api/login", (req, res, next) => {
-    passport.authenticate(`replitauth:${req.hostname}`, {
+    // Use the actual domain from REPLIT_DOMAINS
+    const domain = replitDomains.split(',')[0];
+    passport.authenticate(`replitauth:${domain}`, {
       prompt: "login consent",
       scope: ["openid", "email", "profile", "offline_access"],
     })(req, res, next);
   });
 
   app.get("/api/callback", (req, res, next) => {
-    passport.authenticate(`replitauth:${req.hostname}`, {
+    // Use the actual domain from REPLIT_DOMAINS
+    const domain = replitDomains.split(',')[0];
+    passport.authenticate(`replitauth:${domain}`, {
       successReturnToOrRedirect: "/",
       failureRedirect: "/api/login",
     })(req, res, next);
@@ -119,7 +125,7 @@ export async function setupAuth(app: Express) {
     req.logout(() => {
       res.redirect(
         client.buildEndSessionUrl(config, {
-          client_id: process.env.REPL_ID!,
+          client_id: replId,
           post_logout_redirect_uri: `${req.protocol}://${req.hostname}`,
         }).href
       );

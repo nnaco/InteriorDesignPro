@@ -129,6 +129,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(user);
   }));
 
+  // Development mode auth bypass
+  if (process.env.NODE_ENV === "development") {
+    app.get('/api/auth/dev-login', asyncHandler(async (req, res) => {
+      // Create a development user
+      const devUser = await storage.upsertUser({
+        id: "dev-user-1",
+        email: "dev@designflow.com", 
+        firstName: "Development",
+        lastName: "User",
+        profileImageUrl: null,
+      });
+      
+      // Create a mock session
+      req.session.userId = devUser.id;
+      req.session.user = {
+        claims: {
+          sub: devUser.id,
+          email: devUser.email,
+          first_name: devUser.firstName,
+          last_name: devUser.lastName,
+        }
+      };
+      
+      res.redirect('/');
+    }));
+
+    // Development auth check that bypasses Replit auth
+    app.get('/api/auth/user-dev', asyncHandler(async (req: any, res) => {
+      if (!req.session.userId) {
+        // Auto-create dev user if not logged in
+        const devUser = await storage.upsertUser({
+          id: "dev-user-1",
+          email: "dev@designflow.com",
+          firstName: "Development", 
+          lastName: "User",
+          profileImageUrl: null,
+        });
+        
+        req.session.userId = devUser.id;
+        return res.json(devUser);
+      }
+      
+      const user = await storage.getUser(req.session.userId);
+      if (!user) {
+        throw new CustomError('User not found', 404);
+      }
+      
+      res.json(user);
+    }));
+  }
+
   // Project routes
   app.get('/api/projects', isAuthenticated, async (req: any, res) => {
     try {
@@ -562,6 +613,228 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     await storage.updateUserRole(req.params.id, role);
     res.json({ success: true });
+  }));
+
+  // Time tracking routes
+  app.get('/api/time-tracking/active', isAuthenticated, asyncHandler(async (req: any, res) => {
+    const activeEntry = await storage.getActiveTimeEntry(req.user.claims.sub);
+    res.json(activeEntry || null);
+  }));
+
+  app.post('/api/time-tracking/start', isAuthenticated, asyncHandler(async (req: any, res) => {
+    const { taskId, description } = req.body;
+    const userId = req.user.claims.sub;
+
+    // Stop any existing active entries
+    const existingEntry = await storage.getActiveTimeEntry(userId);
+    if (existingEntry) {
+      const now = new Date();
+      const duration = Math.floor((now.getTime() - new Date(existingEntry.startTime).getTime()) / 1000);
+      await storage.stopTimeEntry(existingEntry.id, now, duration);
+    }
+
+    // Get task and project info
+    const task = await storage.getTask(taskId);
+    if (!task) {
+      throw new CustomError('Task not found', 404);
+    }
+
+    const timeEntry = await storage.createTimeEntry({
+      taskId,
+      projectId: task.projectId!,
+      userId,
+      startTime: new Date(),
+      description,
+      isRunning: true,
+    });
+
+    res.json(timeEntry);
+  }));
+
+  app.put('/api/time-tracking/:id/stop', isAuthenticated, asyncHandler(async (req: any, res) => {
+    const { id } = req.params;
+    const now = new Date();
+    
+    const entries = await storage.getTimeEntries({ userId: req.user.claims.sub });
+    const entry = entries.find(e => e.id === id);
+    
+    if (!entry || !entry.isRunning) {
+      throw new CustomError('Active time entry not found', 404);
+    }
+
+    const duration = Math.floor((now.getTime() - new Date(entry.startTime).getTime()) / 1000);
+    await storage.stopTimeEntry(id, now, duration);
+    
+    res.json({ success: true });
+  }));
+
+  app.get('/api/time-tracking/entries', isAuthenticated, asyncHandler(async (req: any, res) => {
+    const { taskId, projectId } = req.query;
+    const entries = await storage.getTimeEntries({
+      taskId,
+      projectId,
+      userId: req.user.claims.sub,
+    });
+    res.json(entries);
+  }));
+
+  // Invoice routes
+  app.get('/api/invoices', isAuthenticated, asyncHandler(async (req: any, res) => {
+    const { projectId, clientId } = req.query;
+    const invoices = await storage.getInvoices({ projectId, clientId });
+    res.json(invoices);
+  }));
+
+  app.post('/api/invoices', isAuthenticated, asyncHandler(async (req: any, res) => {
+    const { items, ...invoiceData } = req.body;
+    
+    // Generate invoice number
+    const invoiceNumber = `INV-${Date.now()}`;
+    
+    const invoice = await storage.createInvoice({
+      ...invoiceData,
+      invoiceNumber,
+      issueDate: new Date(),
+    });
+
+    // Create invoice items
+    if (items && items.length > 0) {
+      for (const item of items) {
+        await storage.createInvoiceItem({
+          ...item,
+          invoiceId: invoice.id,
+        });
+      }
+    }
+
+    res.json(invoice);
+  }));
+
+  app.get('/api/invoices/:id/items', isAuthenticated, asyncHandler(async (req: any, res) => {
+    const items = await storage.getInvoiceItems(req.params.id);
+    res.json(items);
+  }));
+
+  // Project template routes
+  app.get('/api/project-templates', isAuthenticated, asyncHandler(async (req: any, res) => {
+    const templates = await storage.getProjectTemplates();
+    res.json(templates);
+  }));
+
+  app.post('/api/project-templates', isAuthenticated, asyncHandler(async (req: any, res) => {
+    const { tasks, milestones, ...templateData } = req.body;
+    
+    const template = await storage.createProjectTemplate({
+      ...templateData,
+      createdBy: req.user.claims.sub,
+    });
+
+    if (tasks && tasks.length > 0) {
+      const templateTasks = tasks.map((task: any, index: number) => ({
+        ...task,
+        templateId: template.id,
+        orderIndex: index,
+      }));
+      await storage.createTemplateTasks(templateTasks);
+    }
+
+    if (milestones && milestones.length > 0) {
+      const templateMilestones = milestones.map((milestone: any, index: number) => ({
+        ...milestone,
+        templateId: template.id,
+        orderIndex: index,
+      }));
+      await storage.createTemplateMilestones(templateMilestones);
+    }
+
+    res.json(template);
+  }));
+
+  app.post('/api/projects/from-template', isAuthenticated, asyncHandler(async (req: any, res) => {
+    const { templateId, projectName, clientId, startDate } = req.body;
+    
+    const template = await storage.getProjectTemplate(templateId);
+    if (!template) {
+      throw new CustomError('Template not found', 404);
+    }
+
+    // Create project from template
+    const project = await storage.createProject({
+      name: projectName,
+      description: template.description || '',
+      clientId,
+      createdBy: req.user.claims.sub,
+      status: 'planning',
+      budget: template.estimatedBudget ? Number(template.estimatedBudget) : 0,
+      startDate: new Date(startDate),
+      dueDate: new Date(Date.now() + (template.estimatedDuration || 30) * 24 * 60 * 60 * 1000),
+    });
+
+    // Create tasks from template
+    const templateTasks = await storage.getTemplateTasks(templateId);
+    for (const templateTask of templateTasks) {
+      await storage.createTask({
+        title: templateTask.title,
+        description: templateTask.description || '',
+        projectId: project.id,
+        status: 'todo',
+        priority: templateTask.priority || 'medium',
+        assigneeId: req.user.claims.sub,
+        createdBy: req.user.claims.sub,
+      });
+    }
+
+    // Increment template usage
+    await storage.incrementTemplateUsage(templateId);
+
+    res.json(project);
+  }));
+
+  app.get('/api/project-templates/:id/tasks', isAuthenticated, asyncHandler(async (req: any, res) => {
+    const tasks = await storage.getTemplateTasks(req.params.id);
+    res.json(tasks);
+  }));
+
+  app.get('/api/project-templates/:id/milestones', isAuthenticated, asyncHandler(async (req: any, res) => {
+    const milestones = await storage.getTemplateMilestones(req.params.id);
+    res.json(milestones);
+  }));
+
+  // Client portal routes
+  app.get('/api/client-portal/projects/:clientId', isAuthenticated, asyncHandler(async (req: any, res) => {
+    const projects = await storage.getClientProjects(req.params.clientId);
+    res.json(projects);
+  }));
+
+  app.get('/api/client-portal/documents/:clientId', isAuthenticated, asyncHandler(async (req: any, res) => {
+    const documents = await storage.getClientDocuments(req.params.clientId);
+    res.json(documents);
+  }));
+
+  app.get('/api/client-portal/invoices/:clientId', isAuthenticated, asyncHandler(async (req: any, res) => {
+    const invoices = await storage.getClientInvoices(req.params.clientId);
+    res.json(invoices);
+  }));
+
+  app.get('/api/client-portal/messages/:clientId', isAuthenticated, asyncHandler(async (req: any, res) => {
+    const messages = await storage.getConversationMessages(req.params.clientId);
+    res.json(messages);
+  }));
+
+  app.post('/api/client-portal/access', isAuthenticated, asyncHandler(async (req: any, res) => {
+    const access = await storage.createClientPortalAccess(req.body);
+    res.json(access);
+  }));
+
+  // Add clients endpoint
+  app.get('/api/clients', isAuthenticated, asyncHandler(async (req: any, res) => {
+    const clients = await storage.getUsers();
+    const clientUsers = clients.filter(user => user.role === 'client');
+    res.json(clientUsers.map(client => ({
+      id: client.id,
+      name: `${client.firstName || ''} ${client.lastName || ''}`.trim() || client.email,
+      email: client.email,
+    })));
   }));
 
   // Add global error handler at the end

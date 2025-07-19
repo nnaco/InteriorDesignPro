@@ -14,11 +14,15 @@ import {
   Settings,
   UserCog,
   Box,
+  BarChart3,
+  UserCheck,
 } from "lucide-react";
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: Home },
   { name: "Projects", href: "/projects", icon: FolderOpen },
+  { name: "Project Management", href: "/project-management", icon: BarChart3 },
+  { name: "Client Portal", href: "/client-portal", icon: UserCheck },
   { name: "Tasks", href: "/tasks", icon: CheckSquare },
   { name: "Team", href: "/team", icon: Users },
   { name: "Documents", href: "/documents", icon: FileText },
