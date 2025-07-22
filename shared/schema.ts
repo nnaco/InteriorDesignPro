@@ -11,211 +11,211 @@ import {
   boolean,
   uuid,
   date,
-} from "drizzle-orm/pg-core";
-import { createInsertSchema } from "drizzle-zod";
-import { z } from "zod";
-import { relations } from "drizzle-orm";
+} from 'drizzle-orm/pg-core';
+import { createInsertSchema } from 'drizzle-zod';
+import { z } from 'zod';
+import { relations } from 'drizzle-orm';
 
 // Session storage table (required for Replit Auth)
 export const sessions = pgTable(
-  "sessions",
+  'sessions',
   {
-    sid: varchar("sid").primaryKey(),
-    sess: jsonb("sess").notNull(),
-    expire: timestamp("expire").notNull(),
+    sid: varchar('sid').primaryKey(),
+    sess: jsonb('sess').notNull(),
+    expire: timestamp('expire').notNull(),
   },
-  (table) => [index("IDX_session_expire").on(table.expire)],
+  (table) => [index('IDX_session_expire').on(table.expire)]
 );
 
 // User storage table (required for Replit Auth)
-export const users = pgTable("users", {
-  id: varchar("id").primaryKey().notNull(),
-  email: varchar("email").unique(),
-  firstName: varchar("first_name"),
-  lastName: varchar("last_name"),
-  profileImageUrl: varchar("profile_image_url"),
-  role: varchar("role").notNull().default("designer"), // manager, designer, contractor, client, admin
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+export const users = pgTable('users', {
+  id: varchar('id').primaryKey().notNull(),
+  email: varchar('email').unique(),
+  firstName: varchar('first_name'),
+  lastName: varchar('last_name'),
+  profileImageUrl: varchar('profile_image_url'),
+  role: varchar('role').notNull().default('designer'), // manager, designer, contractor, client, admin
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
 });
 
-export const projects = pgTable("projects", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  name: varchar("name", { length: 255 }).notNull(),
-  description: text("description"),
-  clientName: varchar("client_name", { length: 255 }),
-  status: varchar("status").notNull().default("planning"), // planning, active, on_hold, completed
-  budget: decimal("budget", { precision: 12, scale: 2 }),
-  progress: integer("progress").default(0),
-  startDate: date("start_date"),
-  endDate: date("end_date"),
-  createdBy: varchar("created_by").references(() => users.id),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+export const projects = pgTable('projects', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: varchar('name', { length: 255 }).notNull(),
+  description: text('description'),
+  clientName: varchar('client_name', { length: 255 }),
+  status: varchar('status').notNull().default('planning'), // planning, active, on_hold, completed
+  budget: decimal('budget', { precision: 12, scale: 2 }),
+  progress: integer('progress').default(0),
+  startDate: date('start_date'),
+  endDate: date('end_date'),
+  createdBy: varchar('created_by').references(() => users.id),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
 });
 
-export const tasks = pgTable("tasks", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  title: varchar("title", { length: 255 }).notNull(),
-  description: text("description"),
-  status: varchar("status").notNull().default("todo"), // todo, in_progress, review, done
-  priority: varchar("priority").notNull().default("medium"), // low, medium, high
-  projectId: uuid("project_id").references(() => projects.id),
-  assigneeId: varchar("assignee_id").references(() => users.id),
-  dueDate: date("due_date"),
-  createdBy: varchar("created_by").references(() => users.id),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+export const tasks = pgTable('tasks', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  title: varchar('title', { length: 255 }).notNull(),
+  description: text('description'),
+  status: varchar('status').notNull().default('todo'), // todo, in_progress, review, done
+  priority: varchar('priority').notNull().default('medium'), // low, medium, high
+  projectId: uuid('project_id').references(() => projects.id),
+  assigneeId: varchar('assignee_id').references(() => users.id),
+  dueDate: date('due_date'),
+  createdBy: varchar('created_by').references(() => users.id),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
 });
 
-export const projectMembers = pgTable("project_members", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  projectId: uuid("project_id").references(() => projects.id),
-  userId: varchar("user_id").references(() => users.id),
-  role: varchar("role").default("member"), // lead, member
-  createdAt: timestamp("created_at").defaultNow(),
+export const projectMembers = pgTable('project_members', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  projectId: uuid('project_id').references(() => projects.id),
+  userId: varchar('user_id').references(() => users.id),
+  role: varchar('role').default('member'), // lead, member
+  createdAt: timestamp('created_at').defaultNow(),
 });
 
-export const documents = pgTable("documents", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  name: varchar("name", { length: 255 }),
-  fileName: varchar("file_name", { length: 255 }),
-  filename: varchar("filename", { length: 255 }).notNull(),
-  originalName: varchar("original_name", { length: 255 }).notNull(),
-  mimeType: varchar("mime_type", { length: 100 }).notNull(),
-  fileType: varchar("file_type", { length: 50 }),
-  fileSize: integer("file_size"),
-  size: integer("size").notNull(),
-  filePath: text("file_path").notNull(),
-  checksum: varchar("checksum", { length: 64 }),
-  version: integer("version").default(1),
-  parentDocumentId: uuid("parent_document_id").references(() => documents.id),
-  description: text("description").default(""),
-  projectId: uuid("project_id").references(() => projects.id),
-  uploadedBy: varchar("uploaded_by").references(() => users.id),
-  createdAt: timestamp("created_at").defaultNow(),
+export const documents = pgTable('documents', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: varchar('name', { length: 255 }),
+  fileName: varchar('file_name', { length: 255 }),
+  filename: varchar('filename', { length: 255 }).notNull(),
+  originalName: varchar('original_name', { length: 255 }).notNull(),
+  mimeType: varchar('mime_type', { length: 100 }).notNull(),
+  fileType: varchar('file_type', { length: 50 }),
+  fileSize: integer('file_size'),
+  size: integer('size').notNull(),
+  filePath: text('file_path').notNull(),
+  checksum: varchar('checksum', { length: 64 }),
+  version: integer('version').default(1),
+  parentDocumentId: uuid('parent_document_id').references(() => documents.id),
+  description: text('description').default(''),
+  projectId: uuid('project_id').references(() => projects.id),
+  uploadedBy: varchar('uploaded_by').references(() => users.id),
+  createdAt: timestamp('created_at').defaultNow(),
 });
 
-export const messages = pgTable("messages", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  content: text("content").notNull(),
-  senderId: varchar("sender_id").references(() => users.id),
-  recipientId: varchar("recipient_id").references(() => users.id),
-  conversationId: uuid("conversation_id"),
-  isRead: boolean("is_read").default(false),
-  createdAt: timestamp("created_at").defaultNow(),
+export const messages = pgTable('messages', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  content: text('content').notNull(),
+  senderId: varchar('sender_id').references(() => users.id),
+  recipientId: varchar('recipient_id').references(() => users.id),
+  conversationId: uuid('conversation_id'),
+  isRead: boolean('is_read').default(false),
+  createdAt: timestamp('created_at').defaultNow(),
 });
 
-export const notifications = pgTable("notifications", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  title: varchar("title", { length: 255 }).notNull(),
-  message: text("message"),
-  type: varchar("type").default("info"), // info, success, warning, error
-  userId: varchar("user_id").references(() => users.id),
-  isRead: boolean("is_read").default(false),
-  metadata: jsonb("metadata"),
-  createdAt: timestamp("created_at").defaultNow(),
+export const notifications = pgTable('notifications', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  title: varchar('title', { length: 255 }).notNull(),
+  message: text('message'),
+  type: varchar('type').default('info'), // info, success, warning, error
+  userId: varchar('user_id').references(() => users.id),
+  isRead: boolean('is_read').default(false),
+  metadata: jsonb('metadata'),
+  createdAt: timestamp('created_at').defaultNow(),
 });
 
-export const activities = pgTable("activities", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  action: varchar("action", { length: 255 }).notNull(),
-  entityType: varchar("entity_type"), // project, task, document
-  entityId: uuid("entity_id"),
-  userId: varchar("user_id").references(() => users.id),
-  metadata: jsonb("metadata"),
-  createdAt: timestamp("created_at").defaultNow(),
+export const activities = pgTable('activities', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  action: varchar('action', { length: 255 }).notNull(),
+  entityType: varchar('entity_type'), // project, task, document
+  entityId: uuid('entity_id'),
+  userId: varchar('user_id').references(() => users.id),
+  metadata: jsonb('metadata'),
+  createdAt: timestamp('created_at').defaultNow(),
 });
 
 // Time tracking tables
-export const timeEntries = pgTable("time_entries", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  taskId: uuid("task_id").references(() => tasks.id),
-  projectId: uuid("project_id").references(() => projects.id),
-  userId: varchar("user_id").references(() => users.id),
-  startTime: timestamp("start_time").notNull(),
-  endTime: timestamp("end_time"),
-  duration: integer("duration").default(0), // in seconds
-  description: text("description"),
-  isRunning: boolean("is_running").default(false),
-  createdAt: timestamp("created_at").defaultNow(),
+export const timeEntries = pgTable('time_entries', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  taskId: uuid('task_id').references(() => tasks.id),
+  projectId: uuid('project_id').references(() => projects.id),
+  userId: varchar('user_id').references(() => users.id),
+  startTime: timestamp('start_time').notNull(),
+  endTime: timestamp('end_time'),
+  duration: integer('duration').default(0), // in seconds
+  description: text('description'),
+  isRunning: boolean('is_running').default(false),
+  createdAt: timestamp('created_at').defaultNow(),
 });
 
 // Invoice tables
-export const invoices = pgTable("invoices", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  invoiceNumber: varchar("invoice_number", { length: 50 }).notNull().unique(),
-  projectId: uuid("project_id").references(() => projects.id),
-  clientId: varchar("client_id").references(() => users.id),
-  status: varchar("status").default("draft"), // draft, sent, paid, overdue
-  issueDate: timestamp("issue_date").defaultNow(),
-  dueDate: timestamp("due_date").notNull(),
-  subtotal: decimal("subtotal", { precision: 10, scale: 2 }).default("0"),
-  taxRate: decimal("tax_rate", { precision: 5, scale: 2 }).default("0"),
-  taxAmount: decimal("tax_amount", { precision: 10, scale: 2 }).default("0"),
-  total: decimal("total", { precision: 10, scale: 2 }).default("0"),
-  notes: text("notes"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+export const invoices = pgTable('invoices', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  invoiceNumber: varchar('invoice_number', { length: 50 }).notNull().unique(),
+  projectId: uuid('project_id').references(() => projects.id),
+  clientId: varchar('client_id').references(() => users.id),
+  status: varchar('status').default('draft'), // draft, sent, paid, overdue
+  issueDate: timestamp('issue_date').defaultNow(),
+  dueDate: timestamp('due_date').notNull(),
+  subtotal: decimal('subtotal', { precision: 10, scale: 2 }).default('0'),
+  taxRate: decimal('tax_rate', { precision: 5, scale: 2 }).default('0'),
+  taxAmount: decimal('tax_amount', { precision: 10, scale: 2 }).default('0'),
+  total: decimal('total', { precision: 10, scale: 2 }).default('0'),
+  notes: text('notes'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
 });
 
-export const invoiceItems = pgTable("invoice_items", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  invoiceId: uuid("invoice_id").references(() => invoices.id),
-  description: varchar("description", { length: 255 }).notNull(),
-  quantity: decimal("quantity", { precision: 10, scale: 2 }).notNull(),
-  rate: decimal("rate", { precision: 10, scale: 2 }).notNull(),
-  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
-  createdAt: timestamp("created_at").defaultNow(),
+export const invoiceItems = pgTable('invoice_items', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  invoiceId: uuid('invoice_id').references(() => invoices.id),
+  description: varchar('description', { length: 255 }).notNull(),
+  quantity: decimal('quantity', { precision: 10, scale: 2 }).notNull(),
+  rate: decimal('rate', { precision: 10, scale: 2 }).notNull(),
+  amount: decimal('amount', { precision: 10, scale: 2 }).notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
 });
 
 // Project templates
-export const projectTemplates = pgTable("project_templates", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  name: varchar("name", { length: 255 }).notNull(),
-  description: text("description"),
-  category: varchar("category", { length: 100 }),
-  estimatedDuration: integer("estimated_duration"), // in days
-  estimatedBudget: decimal("estimated_budget", { precision: 10, scale: 2 }),
-  isPublic: boolean("is_public").default(false),
-  createdBy: varchar("created_by").references(() => users.id),
-  usageCount: integer("usage_count").default(0),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+export const projectTemplates = pgTable('project_templates', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: varchar('name', { length: 255 }).notNull(),
+  description: text('description'),
+  category: varchar('category', { length: 100 }),
+  estimatedDuration: integer('estimated_duration'), // in days
+  estimatedBudget: decimal('estimated_budget', { precision: 10, scale: 2 }),
+  isPublic: boolean('is_public').default(false),
+  createdBy: varchar('created_by').references(() => users.id),
+  usageCount: integer('usage_count').default(0),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
 });
 
-export const templateTasks = pgTable("template_tasks", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  templateId: uuid("template_id").references(() => projectTemplates.id),
-  title: varchar("title", { length: 255 }).notNull(),
-  description: text("description"),
-  estimatedHours: integer("estimated_hours"),
-  phase: varchar("phase", { length: 100 }),
-  priority: varchar("priority").default("medium"),
-  orderIndex: integer("order_index").default(0),
-  dependencies: jsonb("dependencies"), // Array of task IDs
-  createdAt: timestamp("created_at").defaultNow(),
+export const templateTasks = pgTable('template_tasks', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  templateId: uuid('template_id').references(() => projectTemplates.id),
+  title: varchar('title', { length: 255 }).notNull(),
+  description: text('description'),
+  estimatedHours: integer('estimated_hours'),
+  phase: varchar('phase', { length: 100 }),
+  priority: varchar('priority').default('medium'),
+  orderIndex: integer('order_index').default(0),
+  dependencies: jsonb('dependencies'), // Array of task IDs
+  createdAt: timestamp('created_at').defaultNow(),
 });
 
-export const templateMilestones = pgTable("template_milestones", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  templateId: uuid("template_id").references(() => projectTemplates.id),
-  title: varchar("title", { length: 255 }).notNull(),
-  description: text("description"),
-  daysFromStart: integer("days_from_start").notNull(),
-  orderIndex: integer("order_index").default(0),
-  createdAt: timestamp("created_at").defaultNow(),
+export const templateMilestones = pgTable('template_milestones', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  templateId: uuid('template_id').references(() => projectTemplates.id),
+  title: varchar('title', { length: 255 }).notNull(),
+  description: text('description'),
+  daysFromStart: integer('days_from_start').notNull(),
+  orderIndex: integer('order_index').default(0),
+  createdAt: timestamp('created_at').defaultNow(),
 });
 
 // Client portal access
-export const clientPortalAccess = pgTable("client_portal_access", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  clientId: varchar("client_id").references(() => users.id),
-  projectId: uuid("project_id").references(() => projects.id),
-  accessLevel: varchar("access_level").default("view"), // view, comment, upload
-  isActive: boolean("is_active").default(true),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+export const clientPortalAccess = pgTable('client_portal_access', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  clientId: varchar('client_id').references(() => users.id),
+  projectId: uuid('project_id').references(() => projects.id),
+  accessLevel: varchar('access_level').default('view'), // view, comment, upload
+  isActive: boolean('is_active').default(true),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
 });
 
 // Relations
@@ -223,8 +223,8 @@ export const usersRelations = relations(users, ({ many }) => ({
   projects: many(projects),
   tasks: many(tasks),
   documents: many(documents),
-  sentMessages: many(messages, { relationName: "sender" }),
-  receivedMessages: many(messages, { relationName: "recipient" }),
+  sentMessages: many(messages, { relationName: 'sender' }),
+  receivedMessages: many(messages, { relationName: 'recipient' }),
   notifications: many(notifications),
   activities: many(activities),
   projectMemberships: many(projectMembers),
@@ -281,12 +281,12 @@ export const messagesRelations = relations(messages, ({ one }) => ({
   sender: one(users, {
     fields: [messages.senderId],
     references: [users.id],
-    relationName: "sender",
+    relationName: 'sender',
   }),
   recipient: one(users, {
     fields: [messages.recipientId],
     references: [users.id],
-    relationName: "recipient",
+    relationName: 'recipient',
   }),
 }));
 

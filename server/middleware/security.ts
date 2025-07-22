@@ -6,57 +6,78 @@ import { createRateLimit } from './errorHandler';
 export const setupSecurity = (app: Express) => {
   // Helmet for security headers - disabled in development to avoid conflicts with Vite
   if (process.env.NODE_ENV === 'production') {
-    app.use(helmet({
-      contentSecurityPolicy: {
-        directives: {
-          defaultSrc: ["'self'"],
-          styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-          fontSrc: ["'self'", "https://fonts.gstatic.com"],
-          imgSrc: ["'self'", "data:", "https:", "blob:"],
-          scriptSrc: ["'self'", "'unsafe-eval'", "'unsafe-inline'"],
-          connectSrc: ["'self'", "ws:", "wss:"],
-          frameSrc: ["'none'"],
-          objectSrc: ["'none'"],
+    app.use(
+      helmet({
+        contentSecurityPolicy: {
+          directives: {
+            defaultSrc: ["'self'"],
+            styleSrc: [
+              "'self'",
+              "'unsafe-inline'",
+              'https://fonts.googleapis.com',
+            ],
+            fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+            imgSrc: ["'self'", 'data:', 'https:', 'blob:'],
+            scriptSrc: ["'self'", "'unsafe-eval'", "'unsafe-inline'"],
+            connectSrc: ["'self'", 'ws:', 'wss:'],
+            frameSrc: ["'none'"],
+            objectSrc: ["'none'"],
+          },
         },
-      },
-      hsts: {
-        maxAge: 31536000,
-        includeSubDomains: true,
-        preload: true
-      }
-    }));
+        hsts: {
+          maxAge: 31536000,
+          includeSubDomains: true,
+          preload: true,
+        },
+      })
+    );
   } else {
     // Minimal helmet config for development
-    app.use(helmet({
-      contentSecurityPolicy: false,
-      crossOriginEmbedderPolicy: false,
-      hsts: false,
-    }));
+    app.use(
+      helmet({
+        contentSecurityPolicy: false,
+        crossOriginEmbedderPolicy: false,
+        hsts: false,
+      })
+    );
   }
 
   // CORS configuration - more permissive in development
   const corsOptions = {
-    origin: process.env.NODE_ENV === 'development' ? true : (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-      // Allow requests with no origin (mobile apps, curl requests, etc.)
-      if (!origin) return callback(null, true);
+    origin:
+      process.env.NODE_ENV === 'development'
+        ? true
+        : (
+            origin: string | undefined,
+            callback: (err: Error | null, allow?: boolean) => void
+          ) => {
+            // Allow requests with no origin (mobile apps, curl requests, etc.)
+            if (!origin) return callback(null, true);
 
-      const allowedOrigins = [
-        'http://localhost:3000',
-        'http://localhost:5173',
-        'https://designflow.app',
-        ...(process.env.REPLIT_DOMAINS?.split(',') || []).map(domain => `https://${domain}`)
-      ];
+            const allowedOrigins = [
+              'http://localhost:3000',
+              'http://localhost:5173',
+              'http://localhost:5001',
+              'https://designflow.app',
+              ...(process.env.REPLIT_DOMAINS?.split(',') || []).map(
+                (domain) => `https://${domain}`
+              ),
+            ];
 
-      if (allowedOrigins.some(allowedOrigin => origin.includes(allowedOrigin))) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
-      }
-    },
+            if (
+              allowedOrigins.some((allowedOrigin) =>
+                origin.includes(allowedOrigin)
+              )
+            ) {
+              callback(null, true);
+            } else {
+              callback(new Error('Not allowed by CORS'));
+            }
+          },
     credentials: true,
     optionsSuccessStatus: 200,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   };
 
   app.use(cors(corsOptions));
@@ -90,17 +111,17 @@ export const sanitizeInput = {
   email: (email: string): string => {
     return validator.normalizeEmail(email) || '';
   },
-  
+
   text: (text: string): string => {
     return validator.escape(text);
   },
-  
+
   filename: (filename: string): string => {
     // Remove potentially dangerous characters
     return filename.replace(/[^a-zA-Z0-9.-]/g, '_');
   },
-  
+
   url: (url: string): string => {
     return validator.isURL(url) ? url : '';
-  }
+  },
 };
