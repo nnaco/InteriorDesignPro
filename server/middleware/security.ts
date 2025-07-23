@@ -54,20 +54,8 @@ export const setupSecurity = (app: Express) => {
             // Allow requests with no origin (mobile apps, curl requests, etc.)
             if (!origin) return callback(null, true);
 
-            const allowedOrigins = [
-              'http://localhost:3000',
-              'http://localhost:5173',
-              'http://localhost:5001',
-              'https://designflow.app',
-              ...(process.env.REPLIT_DOMAINS?.split(',') || []).map(
-                (domain) => `https://${domain}`
-              ),
-            ];
-
             if (
-              allowedOrigins.some((allowedOrigin) =>
-                origin.includes(allowedOrigin)
-              )
+              origin.includes(process.env.APP_URL || 'http://localhost:5001')
             ) {
               callback(null, true);
             } else {
