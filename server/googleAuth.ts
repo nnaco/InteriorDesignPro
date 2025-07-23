@@ -9,6 +9,7 @@ import connectPg from 'connect-pg-simple';
 import { storage } from './storage';
 
 // Environment variables for Google Auth
+const appUrl = process.env.APP_URL || 'http://localhost:5001';
 const googleDomain = process.env.APP_DOMAIN || 'localhost:5001';
 const clientId = process.env.GOOGLE_CLIENT_ID || 'your-google-client-id';
 const clientSecret =
@@ -96,7 +97,7 @@ export async function setupAuth(app: Express) {
       config,
       scope: 'openid email profile', // Google’s supported scopes
       // scope: 'openid email profile offline_access',
-      callbackURL: `http://${googleDomain}/api/callback`,
+      callbackURL: `${appUrl}/api/callback`,
     },
     verify
   );
