@@ -1,17 +1,42 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { 
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
-  PieChart, Pie, Cell, LineChart, Line, Area, AreaChart 
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  LineChart,
+  Line,
+  Area,
+  AreaChart,
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { DatePickerWithRange } from '@/components/ui/date-range-picker';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { 
-  TrendingUp, TrendingDown, Users, FolderOpen, 
-  CheckCircle, Clock, AlertCircle, BarChart3 
+import {
+  TrendingUp,
+  TrendingDown,
+  Users,
+  FolderOpen,
+  CheckCircle,
+  Clock,
+  AlertCircle,
+  BarChart3,
 } from 'lucide-react';
 import { DateRange } from 'react-day-picker';
 
@@ -40,8 +65,16 @@ interface AnalyticsData {
   };
   userMetrics: {
     usersByRole: Array<{ role: string; count: number }>;
-    mostActiveUsers: Array<{ userId: string; email: string; taskCount: number }>;
-    userProductivity: Array<{ userId: string; email: string; completedTasks: number }>;
+    mostActiveUsers: Array<{
+      userId: string;
+      email: string;
+      taskCount: number;
+    }>;
+    userProductivity: Array<{
+      userId: string;
+      email: string;
+      completedTasks: number;
+    }>;
   };
   timeSeriesData: {
     projectsCreatedOverTime: Array<{ date: string; count: number }>;
@@ -50,25 +83,59 @@ interface AnalyticsData {
   };
 }
 
-const COLORS = ['#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
+const COLORS = [
+  '#2563eb',
+  '#10b981',
+  '#f59e0b',
+  '#ef4444',
+  '#8b5cf6',
+  '#06b6d4',
+];
 
 const AdvancedAnalytics: React.FC = () => {
   const [dateRange, setDateRange] = React.useState<DateRange | undefined>();
-  const [selectedView, setSelectedView] = React.useState<'overview' | 'projects' | 'tasks' | 'users'>('overview');
+  const [selectedView, setSelectedView] = React.useState<
+    'overview' | 'projects' | 'tasks' | 'users'
+  >('overview');
 
-  const { data: analyticsData, isLoading, refetch } = useQuery({
+  const {
+    data: analyticsData,
+    isLoading,
+    refetch,
+  } = useQuery({
     queryKey: ['/api/analytics', dateRange?.from, dateRange?.to],
     refetchInterval: 30000, // Refetch every 30 seconds
   });
 
   const data: AnalyticsData = analyticsData || {
-    overview: { totalProjects: 0, activeProjects: 0, completedProjects: 0, totalTasks: 0, 
-               completedTasks: 0, totalUsers: 0, totalDocuments: 0, totalMessages: 0 },
-    projectMetrics: { projectsByStatus: [], projectsCompletionRate: 0, averageProjectDuration: 0 },
-    taskMetrics: { tasksByStatus: [], tasksByPriority: [], taskCompletionRate: 0, 
-                  overdueTasks: 0, averageTaskCompletionTime: 0 },
+    overview: {
+      totalProjects: 0,
+      activeProjects: 0,
+      completedProjects: 0,
+      totalTasks: 0,
+      completedTasks: 0,
+      totalUsers: 0,
+      totalDocuments: 0,
+      totalMessages: 0,
+    },
+    projectMetrics: {
+      projectsByStatus: [],
+      projectsCompletionRate: 0,
+      averageProjectDuration: 0,
+    },
+    taskMetrics: {
+      tasksByStatus: [],
+      tasksByPriority: [],
+      taskCompletionRate: 0,
+      overdueTasks: 0,
+      averageTaskCompletionTime: 0,
+    },
     userMetrics: { usersByRole: [], mostActiveUsers: [], userProductivity: [] },
-    timeSeriesData: { projectsCreatedOverTime: [], tasksCompletedOverTime: [], documentsUploadedOverTime: [] }
+    timeSeriesData: {
+      projectsCreatedOverTime: [],
+      tasksCompletedOverTime: [],
+      documentsUploadedOverTime: [],
+    },
   };
 
   const StatCard: React.FC<{
@@ -84,13 +151,24 @@ const AdvancedAnalytics: React.FC = () => {
           <div>
             <p className="text-sm font-medium text-muted-foreground">{title}</p>
             <div className="text-2xl font-bold">{value}</div>
-            {subtitle && <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>}
+            {subtitle && (
+              <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>
+            )}
             {trend !== undefined && (
-              <div className={`flex items-center mt-2 text-xs ${
-                trend > 0 ? 'text-green-600' : trend < 0 ? 'text-red-600' : 'text-gray-600'
-              }`}>
-                {trend > 0 ? <TrendingUp className="w-3 h-3 mr-1" /> : 
-                 trend < 0 ? <TrendingDown className="w-3 h-3 mr-1" /> : null}
+              <div
+                className={`flex items-center mt-2 text-xs ${
+                  trend > 0
+                    ? 'text-green-600'
+                    : trend < 0
+                    ? 'text-red-600'
+                    : 'text-gray-600'
+                }`}
+              >
+                {trend > 0 ? (
+                  <TrendingUp className="w-3 h-3 mr-1" />
+                ) : trend < 0 ? (
+                  <TrendingDown className="w-3 h-3 mr-1" />
+                ) : null}
                 {trend !== 0 && `${Math.abs(trend)}%`}
               </div>
             )}
@@ -107,12 +185,12 @@ const AdvancedAnalytics: React.FC = () => {
         <div className="animate-pulse">
           <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            {[1, 2, 3, 4].map(i => (
+            {[1, 2, 3, 4].map((i) => (
               <div key={i} className="h-24 bg-gray-200 rounded"></div>
             ))}
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {[1, 2, 3, 4].map(i => (
+            {[1, 2, 3, 4].map((i) => (
               <div key={i} className="h-64 bg-gray-200 rounded"></div>
             ))}
           </div>
@@ -127,15 +205,20 @@ const AdvancedAnalytics: React.FC = () => {
       <div className="flex flex-col sm:flex-row gap-4 justify-between items-start">
         <div>
           <h1 className="text-3xl font-bold">Advanced Analytics</h1>
-          <p className="text-muted-foreground">Comprehensive insights into your design projects</p>
+          <p className="text-muted-foreground">
+            Comprehensive insights into your design projects
+          </p>
         </div>
         <div className="flex flex-col sm:flex-row gap-2">
-          <DatePickerWithRange 
-            date={dateRange} 
+          <DatePickerWithRange
+            date={dateRange}
             onDateChange={setDateRange}
             className="w-full sm:w-auto"
           />
-          <Select value={selectedView} onValueChange={(v: any) => setSelectedView(v)}>
+          <Select
+            value={selectedView}
+            onValueChange={(v: any) => setSelectedView(v)}
+          >
             <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue placeholder="Select view" />
             </SelectTrigger>
@@ -167,7 +250,9 @@ const AdvancedAnalytics: React.FC = () => {
               title="Completed Tasks"
               value={data.overview.completedTasks}
               icon={<CheckCircle className="h-5 w-5" />}
-              subtitle={`${data.taskMetrics.taskCompletionRate.toFixed(1)}% completion rate`}
+              subtitle={`${data.taskMetrics.taskCompletionRate.toFixed(
+                1
+              )}% completion rate`}
             />
             <StatCard
               title="Team Members"
@@ -200,9 +285,14 @@ const AdvancedAnalytics: React.FC = () => {
                       dataKey="count"
                       label={({ status, count }) => `${status}: ${count}`}
                     >
-                      {data.projectMetrics.projectsByStatus.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
+                      {data.projectMetrics.projectsByStatus.map(
+                        (entry, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={COLORS[index % COLORS.length]}
+                          />
+                        )
+                      )}
                     </Pie>
                     <Tooltip />
                   </PieChart>
@@ -240,7 +330,12 @@ const AdvancedAnalytics: React.FC = () => {
                     <XAxis dataKey="date" />
                     <YAxis />
                     <Tooltip />
-                    <Area type="monotone" dataKey="count" stroke="#2563eb" fill="#2563eb" />
+                    <Area
+                      type="monotone"
+                      dataKey="count"
+                      stroke="#2563eb"
+                      fill="#2563eb"
+                    />
                   </AreaChart>
                 </ResponsiveContainer>
               </CardContent>
@@ -258,7 +353,12 @@ const AdvancedAnalytics: React.FC = () => {
                     <XAxis dataKey="date" />
                     <YAxis />
                     <Tooltip />
-                    <Line type="monotone" dataKey="count" stroke="#10b981" strokeWidth={2} />
+                    <Line
+                      type="monotone"
+                      dataKey="count"
+                      stroke="#10b981"
+                      strokeWidth={2}
+                    />
                   </LineChart>
                 </ResponsiveContainer>
               </CardContent>
@@ -276,20 +376,27 @@ const AdvancedAnalytics: React.FC = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {data.userMetrics.mostActiveUsers.slice(0, 10).map((user, index) => (
-                  <div key={user.userId} className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
-                        {index + 1}
+                {data.userMetrics.mostActiveUsers
+                  .slice(0, 10)
+                  .map((user, index) => (
+                    <div
+                      key={user.userId}
+                      className="flex items-center justify-between"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
+                          {index + 1}
+                        </div>
+                        <div>
+                          <p className="font-medium">{user.email}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {user.taskCount} tasks
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-medium">{user.email}</p>
-                        <p className="text-sm text-muted-foreground">{user.taskCount} tasks</p>
-                      </div>
+                      <Badge variant="secondary">{user.taskCount}</Badge>
                     </div>
-                    <Badge variant="secondary">{user.taskCount}</Badge>
-                  </div>
-                ))}
+                  ))}
               </div>
             </CardContent>
           </Card>
@@ -311,7 +418,10 @@ const AdvancedAnalytics: React.FC = () => {
                     label={({ role, count }) => `${role}: ${count}`}
                   >
                     {data.userMetrics.usersByRole.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={COLORS[index % COLORS.length]}
+                      />
                     ))}
                   </Pie>
                   <Tooltip />
@@ -329,7 +439,9 @@ const AdvancedAnalytics: React.FC = () => {
             <div className="text-2xl font-bold text-green-600">
               {data.projectMetrics.projectsCompletionRate.toFixed(1)}%
             </div>
-            <p className="text-sm text-muted-foreground">Project Completion Rate</p>
+            <p className="text-sm text-muted-foreground">
+              Project Completion Rate
+            </p>
           </CardContent>
         </Card>
 
@@ -338,7 +450,9 @@ const AdvancedAnalytics: React.FC = () => {
             <div className="text-2xl font-bold text-blue-600">
               {data.projectMetrics.averageProjectDuration}
             </div>
-            <p className="text-sm text-muted-foreground">Avg Project Duration (days)</p>
+            <p className="text-sm text-muted-foreground">
+              Avg Project Duration (days)
+            </p>
           </CardContent>
         </Card>
 
@@ -347,7 +461,9 @@ const AdvancedAnalytics: React.FC = () => {
             <div className="text-2xl font-bold text-purple-600">
               {data.taskMetrics.averageTaskCompletionTime}
             </div>
-            <p className="text-sm text-muted-foreground">Avg Task Completion (days)</p>
+            <p className="text-sm text-muted-foreground">
+              Avg Task Completion (days)
+            </p>
           </CardContent>
         </Card>
       </div>

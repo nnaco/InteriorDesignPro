@@ -1,17 +1,17 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useQuery } from "@tanstack/react-query";
-import { formatDistanceToNow } from "date-fns";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useQuery } from '@tanstack/react-query';
+import { formatDistanceToNow } from 'date-fns';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export function ActivityFeed() {
   const { data: activities = [], isLoading } = useQuery({
-    queryKey: ["/api/activities"],
+    queryKey: ['/api/activities'],
   });
 
   const { data: users = [] } = useQuery({
-    queryKey: ["/api/users"],
+    queryKey: ['/api/users'],
   });
 
   const getUserById = (id: string) => {
@@ -58,21 +58,31 @@ export function ActivityFeed() {
           ) : (
             activities.map((activity: any) => {
               const user = getUserById(activity.userId);
-              const userName = user ? `${user.firstName} ${user.lastName}` : "Unknown User";
-              const userInitials = user ? `${user.firstName?.[0] || ""}${user.lastName?.[0] || ""}` : "?";
-              
+              const userName = user
+                ? `${user.firstName} ${user.lastName}`
+                : 'Unknown User';
+              const userInitials = user
+                ? `${user.firstName?.[0] || ''}${user.lastName?.[0] || ''}`
+                : '?';
+
               return (
-                <div key={activity.id} className="flex items-start space-x-4 p-4 hover:bg-secondary rounded-lg">
+                <div
+                  key={activity.id}
+                  className="flex items-start space-x-4 p-4 hover:bg-secondary rounded-lg"
+                >
                   <Avatar className="w-10 h-10">
                     <AvatarImage src={user?.profileImageUrl} alt={userName} />
                     <AvatarFallback>{userInitials}</AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
                     <p className="text-sm text-foreground">
-                      <span className="font-medium">{userName}</span> {activity.action}
+                      <span className="font-medium">{userName}</span>{' '}
+                      {activity.action}
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">
-                      {formatDistanceToNow(new Date(activity.createdAt), { addSuffix: true })}
+                      {formatDistanceToNow(new Date(activity.createdAt), {
+                        addSuffix: true,
+                      })}
                     </p>
                   </div>
                 </div>

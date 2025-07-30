@@ -1,51 +1,57 @@
-import { useState, useEffect } from "react";
-import { MainLayout } from "@/components/layout/MainLayout";
-import { MemberCard } from "@/components/team/MemberCard";
-import { StatsCard } from "@/components/dashboard/StatsCard";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useAuth } from "@/hooks/useAuth";
-import { useToast } from "@/hooks/use-toast";
-import { useQuery } from "@tanstack/react-query";
-import { isUnauthorizedError } from "@/lib/authUtils";
-import { Users, UserCheck, Briefcase, Building } from "lucide-react";
-import { Search } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
+import { useState, useEffect } from 'react';
+import { MainLayout } from '@/components/layout/MainLayout';
+import { MemberCard } from '@/components/team/MemberCard';
+import { StatsCard } from '@/components/dashboard/StatsCard';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
+import { useQuery } from '@tanstack/react-query';
+import { isUnauthorizedError } from '@/lib/authUtils';
+import { Users, UserCheck, Briefcase, Building } from 'lucide-react';
+import { Search } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function Team() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [roleFilter, setRoleFilter] = useState("all");
-  
+  const [searchQuery, setSearchQuery] = useState('');
+  const [roleFilter, setRoleFilter] = useState('all');
+
   const { toast } = useToast();
   const { isAuthenticated, isLoading } = useAuth();
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       toast({
-        title: "Unauthorized",
-        description: "You are logged out. Logging in again...",
-        variant: "destructive",
+        title: 'Unauthorized',
+        description: 'You are logged out. Logging in again...',
+        variant: 'destructive',
       });
       setTimeout(() => {
-        window.location.href = "/api/login";
+        window.location.href = '/api/login';
       }, 500);
       return;
     }
   }, [isAuthenticated, isLoading, toast]);
 
   const { data: users = [], isLoading: usersLoading } = useQuery({
-    queryKey: ["/api/users"],
+    queryKey: ['/api/users'],
     onError: (error) => {
       if (isUnauthorizedError(error)) {
         toast({
-          title: "Unauthorized",
-          description: "You are logged out. Logging in again...",
-          variant: "destructive",
+          title: 'Unauthorized',
+          description: 'You are logged out. Logging in again...',
+          variant: 'destructive',
         });
         setTimeout(() => {
-          window.location.href = "/api/login";
+          window.location.href = '/api/login';
         }, 500);
         return;
       }
@@ -53,16 +59,19 @@ export default function Team() {
   });
 
   const { data: projects = [] } = useQuery({
-    queryKey: ["/api/projects"],
+    queryKey: ['/api/projects'],
   });
 
   // Filter team members
   const filteredMembers = users.filter((member: any) => {
-    const fullName = `${member.firstName || ""} ${member.lastName || ""}`.toLowerCase();
-    const matchesSearch = fullName.includes(searchQuery.toLowerCase()) ||
+    const fullName = `${member.firstName || ''} ${
+      member.lastName || ''
+    }`.toLowerCase();
+    const matchesSearch =
+      fullName.includes(searchQuery.toLowerCase()) ||
       member.email?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesRole = roleFilter === "all" || member.role === roleFilter;
-    
+    const matchesRole = roleFilter === 'all' || member.role === roleFilter;
+
     return matchesSearch && matchesRole;
   });
 
@@ -99,10 +108,10 @@ export default function Team() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-bold text-foreground">Team Directory</h2>
-          <Button>
+          {/* <Button>
             <Users className="h-4 w-4 mr-2" />
             Add Member
-          </Button>
+          </Button> */}
         </div>
 
         {/* Team Stats */}
@@ -152,7 +161,7 @@ export default function Team() {
                     <SelectItem value="admin">Administrator</SelectItem>
                   </SelectContent>
                 </Select>
-                
+
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                   <Input

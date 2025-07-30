@@ -1,15 +1,15 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Bell, Plus, Search, Menu } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+} from '@/components/ui/dropdown-menu';
+import { Bell, Plus, Search, Menu } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 
 interface TopBarProps {
   title: string;
@@ -17,10 +17,10 @@ interface TopBarProps {
 }
 
 export function TopBar({ title, onMenuClick }: TopBarProps) {
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
 
   const { data: notifications = [] } = useQuery({
-    queryKey: ["/api/notifications"],
+    queryKey: ['/api/notifications'],
   });
 
   const unreadCount = notifications.filter((n: any) => !n.isRead).length;
@@ -38,19 +38,8 @@ export function TopBar({ title, onMenuClick }: TopBarProps) {
         </Button>
         <h1 className="text-xl font-semibold text-foreground">{title}</h1>
       </div>
-      
+
       <div className="flex items-center space-x-4">
-        <div className="relative hidden md:block">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-          <Input
-            type="search"
-            placeholder="Search projects, tasks..."
-            className="pl-10 w-64"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-        
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="sm" className="relative">
@@ -60,31 +49,29 @@ export function TopBar({ title, onMenuClick }: TopBarProps) {
                   variant="destructive"
                   className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
                 >
-                  {unreadCount > 9 ? "9+" : unreadCount}
+                  {unreadCount > 9 ? '9+' : unreadCount}
                 </Badge>
               )}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-80">
             {notifications.length === 0 ? (
-              <DropdownMenuItem disabled>
-                No notifications
-              </DropdownMenuItem>
+              <DropdownMenuItem disabled>No notifications</DropdownMenuItem>
             ) : (
               notifications.slice(0, 5).map((notification: any) => (
-                <DropdownMenuItem key={notification.id} className="flex flex-col items-start space-y-1">
+                <DropdownMenuItem
+                  key={notification.id}
+                  className="flex flex-col items-start space-y-1"
+                >
                   <div className="font-medium">{notification.title}</div>
-                  <div className="text-sm text-muted-foreground">{notification.message}</div>
+                  <div className="text-sm text-muted-foreground">
+                    {notification.message}
+                  </div>
                 </DropdownMenuItem>
               ))
             )}
           </DropdownMenuContent>
         </DropdownMenu>
-        
-        <Button size="sm">
-          <Plus className="h-4 w-4 mr-2" />
-          New
-        </Button>
       </div>
     </header>
   );

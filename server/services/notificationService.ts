@@ -4,7 +4,12 @@ import type { User } from '@shared/schema';
 
 interface NotificationData {
   userId: string;
-  type: 'project_assigned' | 'task_assigned' | 'task_due' | 'project_status_change' | 'task_completed';
+  type:
+    | 'project_assigned'
+    | 'task_assigned'
+    | 'task_due'
+    | 'project_status_change'
+    | 'task_completed';
   title: string;
   message: string;
   metadata?: any;
@@ -36,7 +41,10 @@ class NotificationService {
     }
   }
 
-  private async sendEmailNotification(user: User, data: NotificationData): Promise<void> {
+  private async sendEmailNotification(
+    user: User,
+    data: NotificationData
+  ): Promise<void> {
     try {
       switch (data.type) {
         case 'project_assigned':
@@ -92,7 +100,7 @@ class NotificationService {
                 <p>${data.message}</p>
                 <p>Best regards,<br>DesignFlow Team</p>
               </div>
-            `
+            `,
           });
           break;
       }
@@ -101,21 +109,25 @@ class NotificationService {
     }
   }
 
-  async notifyProjectAssignment(userId: string, projectId: string, projectName: string): Promise<void> {
+  async notifyProjectAssignment(
+    userId: string,
+    projectId: string,
+    projectName: string
+  ): Promise<void> {
     await this.createNotification({
       userId,
       type: 'project_assigned',
       title: 'New Project Assignment',
       message: `You have been assigned to project: ${projectName}`,
       metadata: { projectId, projectName },
-      sendEmail: true
+      sendEmail: true,
     });
   }
 
   async notifyTaskAssignment(
-    userId: string, 
-    taskTitle: string, 
-    projectName: string, 
+    userId: string,
+    taskTitle: string,
+    projectName: string,
     dueDate?: Date
   ): Promise<void> {
     await this.createNotification({
@@ -124,13 +136,18 @@ class NotificationService {
       title: 'New Task Assignment',
       message: `You have been assigned a new task: ${taskTitle}`,
       metadata: { taskTitle, projectName, dueDate },
-      sendEmail: true
+      sendEmail: true,
     });
   }
 
-  async notifyTaskDue(userId: string, taskTitle: string, dueDate: Date, isOverdue = false): Promise<void> {
+  async notifyTaskDue(
+    userId: string,
+    taskTitle: string,
+    dueDate: Date,
+    isOverdue = false
+  ): Promise<void> {
     const title = isOverdue ? 'Task Overdue' : 'Task Due Soon';
-    const message = isOverdue 
+    const message = isOverdue
       ? `Task "${taskTitle}" is overdue (due: ${dueDate.toLocaleDateString()})`
       : `Task "${taskTitle}" is due soon (${dueDate.toLocaleDateString()})`;
 
@@ -140,39 +157,43 @@ class NotificationService {
       title,
       message,
       metadata: { taskTitle, dueDate, isOverdue },
-      sendEmail: true
+      sendEmail: true,
     });
   }
 
   async notifyProjectStatusChange(
-    userIds: string[], 
-    projectId: string, 
-    projectName: string, 
-    oldStatus: string, 
+    userIds: string[],
+    projectId: string,
+    projectName: string,
+    oldStatus: string,
     newStatus: string
   ): Promise<void> {
-    const notifications = userIds.map(userId => 
+    const notifications = userIds.map((userId) =>
       this.createNotification({
         userId,
         type: 'project_status_change',
         title: 'Project Status Updated',
         message: `Project "${projectName}" status changed from ${oldStatus} to ${newStatus}`,
         metadata: { projectId, projectName, oldStatus, newStatus },
-        sendEmail: true
+        sendEmail: true,
       })
     );
 
     await Promise.all(notifications);
   }
 
-  async notifyTaskCompletion(userId: string, taskTitle: string, projectName: string): Promise<void> {
+  async notifyTaskCompletion(
+    userId: string,
+    taskTitle: string,
+    projectName: string
+  ): Promise<void> {
     await this.createNotification({
       userId,
       type: 'task_completed',
       title: 'Task Completed',
       message: `Task "${taskTitle}" has been completed in project ${projectName}`,
       metadata: { taskTitle, projectName },
-      sendEmail: false // Don't spam with completion emails
+      sendEmail: false, // Don't spam with completion emails
     });
   }
 
@@ -183,14 +204,14 @@ class NotificationService {
     message: string,
     metadata?: any
   ): Promise<void> {
-    const notifications = userIds.map(userId =>
+    const notifications = userIds.map((userId) =>
       this.createNotification({
         userId,
         type: 'project_assigned', // Generic type
         title,
         message,
         metadata,
-        sendEmail: false
+        sendEmail: false,
       })
     );
 
@@ -206,12 +227,12 @@ class NotificationService {
 
       // Get tasks due tomorrow
       const dueTasks = await storage.getTasksDueBetween(today, tomorrow);
-      
+
       for (const task of dueTasks) {
         if (task.assigneeId && task.dueDate) {
           await this.notifyTaskDue(
-            task.assigneeId, 
-            task.title, 
+            task.assigneeId,
+            task.title,
             new Date(task.dueDate)
           );
         }
@@ -219,12 +240,12 @@ class NotificationService {
 
       // Get overdue tasks
       const overdueTasks = await storage.getOverdueTasks();
-      
+
       for (const task of overdueTasks) {
         if (task.assigneeId && task.dueDate) {
           await this.notifyTaskDue(
-            task.assigneeId, 
-            task.title, 
+            task.assigneeId,
+            task.title,
             new Date(task.dueDate),
             true
           );

@@ -1,13 +1,13 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Search } from "lucide-react";
+} from '@/components/ui/select';
+import { Search } from 'lucide-react';
 
 interface ProjectFiltersProps {
   searchQuery: string;

@@ -1,13 +1,19 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { MainLayout } from "@/components/layout/MainLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ClientPortal } from "@/components/client-portal/ClientPortal";
-import { Users, Eye } from "lucide-react";
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { MainLayout } from '@/components/layout/MainLayout';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { ClientPortal } from '@/components/client-portal/ClientPortal';
+import { Users, Eye } from 'lucide-react';
 
 export default function ClientPortalPage() {
-  const [selectedClient, setSelectedClient] = useState<string>("");
+  const [selectedClient, setSelectedClient] = useState<string>('');
 
   // Fetch clients for selection
   const { data: clients = [] } = useQuery({
@@ -21,7 +27,8 @@ export default function ClientPortalPage() {
           <div>
             <h1 className="text-3xl font-bold">Client Portal</h1>
             <p className="text-gray-600">
-              Enhanced client experience with project updates, documents, and communication
+              Enhanced client experience with project updates, documents, and
+              communication
             </p>
           </div>
         </div>
@@ -38,7 +45,10 @@ export default function ClientPortalPage() {
             <div className="space-y-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Select Client</label>
-                <Select value={selectedClient} onValueChange={setSelectedClient}>
+                <Select
+                  value={selectedClient}
+                  onValueChange={setSelectedClient}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Choose a client to view their portal" />
                   </SelectTrigger>
@@ -51,11 +61,12 @@ export default function ClientPortalPage() {
                   </SelectContent>
                 </Select>
               </div>
-              
+
               {selectedClient && (
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <Eye className="h-4 w-4" />
-                  Viewing portal as: {clients.find((c: any) => c.id === selectedClient)?.name}
+                  Viewing portal as:{' '}
+                  {clients.find((c: any) => c.id === selectedClient)?.name}
                 </div>
               )}
             </div>

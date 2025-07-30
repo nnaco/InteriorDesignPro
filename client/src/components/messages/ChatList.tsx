@@ -1,26 +1,29 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { useQuery } from "@tanstack/react-query";
-import { formatDistanceToNow } from "date-fns";
-import { Search } from "lucide-react";
-import { useState } from "react";
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { useQuery } from '@tanstack/react-query';
+import { formatDistanceToNow } from 'date-fns';
+import { Search } from 'lucide-react';
+import { useState } from 'react';
 
 interface ChatListProps {
   onConversationSelect: (conversationId: string, recipientId: string) => void;
   selectedConversationId?: string;
 }
 
-export function ChatList({ onConversationSelect, selectedConversationId }: ChatListProps) {
-  const [searchQuery, setSearchQuery] = useState("");
+export function ChatList({
+  onConversationSelect,
+  selectedConversationId,
+}: ChatListProps) {
+  const [searchQuery, setSearchQuery] = useState('');
 
   const { data: conversations = [] } = useQuery({
-    queryKey: ["/api/conversations"],
+    queryKey: ['/api/conversations'],
   });
 
   const { data: users = [] } = useQuery({
-    queryKey: ["/api/users"],
+    queryKey: ['/api/users'],
   });
 
   const getUserById = (id: string) => {
@@ -30,7 +33,9 @@ export function ChatList({ onConversationSelect, selectedConversationId }: ChatL
   const filteredConversations = conversations.filter((conv: any) => {
     if (!searchQuery) return true;
     const otherUser = getUserById(conv.otherUserId);
-    const userName = otherUser ? `${otherUser.firstName} ${otherUser.lastName}` : "";
+    const userName = otherUser
+      ? `${otherUser.firstName} ${otherUser.lastName}`
+      : '';
     return userName.toLowerCase().includes(searchQuery.toLowerCase());
   });
 
@@ -49,7 +54,7 @@ export function ChatList({ onConversationSelect, selectedConversationId }: ChatL
             />
           </div>
         </div>
-        
+
         <div className="overflow-y-auto max-h-96">
           {filteredConversations.length === 0 ? (
             <div className="p-4 text-center text-muted-foreground">
@@ -58,25 +63,37 @@ export function ChatList({ onConversationSelect, selectedConversationId }: ChatL
           ) : (
             filteredConversations.map((conversation: any) => {
               const otherUser = getUserById(conversation.otherUserId);
-              const userName = otherUser ? `${otherUser.firstName} ${otherUser.lastName}` : "Unknown User";
-              const userInitials = otherUser ? `${otherUser.firstName?.[0] || ""}${otherUser.lastName?.[0] || ""}` : "?";
-              const isSelected = selectedConversationId === conversation.conversationId;
-              
+              const userName = otherUser
+                ? `${otherUser.firstName} ${otherUser.lastName}`
+                : 'Unknown User';
+              const userInitials = otherUser
+                ? `${otherUser.firstName?.[0] || ''}${
+                    otherUser.lastName?.[0] || ''
+                  }`
+                : '?';
+              const isSelected =
+                selectedConversationId === conversation.conversationId;
+
               return (
                 <div
                   key={conversation.conversationId || conversation.otherUserId}
                   className={`p-4 border-b border-border hover:bg-secondary cursor-pointer transition-colors ${
-                    isSelected ? "bg-primary/5" : ""
+                    isSelected ? 'bg-primary/5' : ''
                   }`}
-                  onClick={() => onConversationSelect(
-                    conversation.conversationId || conversation.otherUserId,
-                    conversation.otherUserId
-                  )}
+                  onClick={() =>
+                    onConversationSelect(
+                      conversation.conversationId || conversation.otherUserId,
+                      conversation.otherUserId
+                    )
+                  }
                 >
                   <div className="flex items-center space-x-3">
                     <div className="relative">
                       <Avatar className="w-10 h-10">
-                        <AvatarImage src={otherUser?.profileImageUrl} alt={userName} />
+                        <AvatarImage
+                          src={otherUser?.profileImageUrl}
+                          alt={userName}
+                        />
                         <AvatarFallback>{userInitials}</AvatarFallback>
                       </Avatar>
                       {Math.random() > 0.5 && ( // Mock online status
@@ -85,9 +102,14 @@ export function ChatList({ onConversationSelect, selectedConversationId }: ChatL
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
-                        <p className="font-medium text-foreground truncate">{userName}</p>
+                        <p className="font-medium text-foreground truncate">
+                          {userName}
+                        </p>
                         <span className="text-xs text-muted-foreground">
-                          {formatDistanceToNow(new Date(conversation.lastMessageTime), { addSuffix: true })}
+                          {formatDistanceToNow(
+                            new Date(conversation.lastMessageTime),
+                            { addSuffix: true }
+                          )}
                         </span>
                       </div>
                       <p className="text-sm text-muted-foreground truncate">
@@ -95,7 +117,10 @@ export function ChatList({ onConversationSelect, selectedConversationId }: ChatL
                       </p>
                     </div>
                     {!conversation.isRead && (
-                      <Badge variant="default" className="w-2 h-2 p-0 rounded-full" />
+                      <Badge
+                        variant="default"
+                        className="w-2 h-2 p-0 rounded-full"
+                      />
                     )}
                   </div>
                 </div>

@@ -1,24 +1,32 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Badge } from "@/components/ui/badge";
+} from '@/components/ui/dropdown-menu';
+import { Badge } from '@/components/ui/badge';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { FileText, Image, Box, Pencil, MoreVertical, Grid3X3, List } from "lucide-react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
-import { format } from "date-fns";
+} from '@/components/ui/select';
+import {
+  FileText,
+  Image,
+  Box,
+  Pencil,
+  MoreVertical,
+  Grid3X3,
+  List,
+} from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
+import { format } from 'date-fns';
 
 interface FileGridProps {
   projectFilter: string;
@@ -37,77 +45,80 @@ export function FileGrid({
   const queryClient = useQueryClient();
 
   const { data: documents = [] } = useQuery({
-    queryKey: projectFilter === "all" ? ["/api/documents"] : ["/api/documents", { projectId: projectFilter }],
+    queryKey:
+      projectFilter === 'all'
+        ? ['/api/documents']
+        : ['/api/documents', { projectId: projectFilter }],
   });
 
   const { data: projects = [] } = useQuery({
-    queryKey: ["/api/projects"],
+    queryKey: ['/api/projects'],
   });
 
   const deleteMutation = useMutation({
     mutationFn: async (documentId: string) => {
-      await apiRequest("DELETE", `/api/documents/${documentId}`);
+      await apiRequest('DELETE', `/api/documents/${documentId}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/documents"] });
+      queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
       toast({
-        title: "Success",
-        description: "Document deleted successfully",
+        title: 'Success',
+        description: 'Document deleted successfully',
       });
     },
     onError: (error) => {
-      console.error("Delete error:", error);
+      console.error('Delete error:', error);
       toast({
-        title: "Error",
-        description: "Failed to delete document",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to delete document',
+        variant: 'destructive',
       });
     },
   });
 
   const getFileIcon = (fileType?: string) => {
     if (!fileType) return <FileText className="h-6 w-6" />;
-    
-    if (fileType.includes("pdf")) {
+
+    if (fileType.includes('pdf')) {
       return <FileText className="h-6 w-6 text-red-600" />;
-    } else if (fileType.includes("image")) {
+    } else if (fileType.includes('image')) {
       return <Image className="h-6 w-6 text-blue-600" />;
-    } else if (fileType.includes("dwg") || fileType.includes("cad")) {
+    } else if (fileType.includes('dwg') || fileType.includes('cad')) {
       return <Pencil className="h-6 w-6 text-purple-600" />;
-    } else if (fileType.includes("skp") || fileType.includes("3d")) {
+    } else if (fileType.includes('skp') || fileType.includes('3d')) {
       return <Box className="h-6 w-6 text-green-600" />;
     }
-    
+
     return <FileText className="h-6 w-6 text-gray-600" />;
   };
 
   const getFileTypeColor = (fileType?: string) => {
-    if (!fileType) return "file-default";
-    
-    if (fileType.includes("pdf")) return "file-pdf";
-    if (fileType.includes("image")) return "file-image";
-    if (fileType.includes("dwg") || fileType.includes("cad")) return "file-cad";
-    if (fileType.includes("skp") || fileType.includes("3d")) return "file-3d";
-    
-    return "file-default";
+    if (!fileType) return 'file-default';
+
+    if (fileType.includes('pdf')) return 'file-pdf';
+    if (fileType.includes('image')) return 'file-image';
+    if (fileType.includes('dwg') || fileType.includes('cad')) return 'file-cad';
+    if (fileType.includes('skp') || fileType.includes('3d')) return 'file-3d';
+
+    return 'file-default';
   };
 
   const formatFileSize = (bytes?: number) => {
-    if (!bytes) return "0 Bytes";
+    if (!bytes) return '0 Bytes';
     const k = 1024;
-    const sizes = ["Bytes", "KB", "MB", "GB"];
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
   const getProjectName = (projectId?: string) => {
-    if (!projectId) return "General";
+    if (!projectId) return 'General';
     const project = projects.find((p: any) => p.id === projectId);
-    return project?.name || "Unknown Project";
+    return project?.name || 'Unknown Project';
   };
 
   const filteredDocuments = documents.filter((doc: any) => {
-    if (typeFilter !== "all") {
+    if (typeFilter !== 'all') {
       const matchesType = doc.fileType?.includes(typeFilter);
       if (!matchesType) return false;
     }
@@ -164,10 +175,17 @@ export function FileGrid({
           </div>
         ) : (
           filteredDocuments.map((document: any) => (
-            <Card key={document.id} className="border border-border hover:shadow-material transition-shadow cursor-pointer">
+            <Card
+              key={document.id}
+              className="border border-border hover:shadow-material transition-shadow cursor-pointer"
+            >
               <CardContent className="p-4">
                 <div className="flex items-center justify-between mb-3">
-                  <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${getFileTypeColor(document.fileType)}`}>
+                  <div
+                    className={`w-12 h-12 rounded-lg flex items-center justify-center ${getFileTypeColor(
+                      document.fileType
+                    )}`}
+                  >
                     {getFileIcon(document.fileType)}
                   </div>
                   <DropdownMenu>
@@ -179,7 +197,7 @@ export function FileGrid({
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem>Download</DropdownMenuItem>
                       <DropdownMenuItem>Share</DropdownMenuItem>
-                      <DropdownMenuItem 
+                      <DropdownMenuItem
                         className="text-destructive"
                         onClick={() => deleteMutation.mutate(document.id)}
                       >
@@ -188,17 +206,17 @@ export function FileGrid({
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
-                
+
                 <h4 className="font-medium text-foreground text-sm mb-1 line-clamp-2">
                   {document.name}
                 </h4>
                 <p className="text-xs text-muted-foreground mb-2">
                   {getProjectName(document.projectId)}
                 </p>
-                
+
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                   <span>{formatFileSize(document.fileSize)}</span>
-                  <span>{format(new Date(document.createdAt), "MMM d")}</span>
+                  <span>{format(new Date(document.createdAt), 'MMM d')}</span>
                 </div>
               </CardContent>
             </Card>

@@ -1,8 +1,8 @@
-import { Link, useLocation } from "wouter";
-import { cn } from "@/lib/utils";
-import { useAuth } from "@/hooks/useAuth";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
+import { Link, useLocation } from 'wouter';
+import { cn } from '@/lib/utils';
+import { useAuth } from '@/hooks/useAuth';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 import {
   Home,
   FolderOpen,
@@ -16,18 +16,18 @@ import {
   Box,
   BarChart3,
   UserCheck,
-} from "lucide-react";
+} from 'lucide-react';
 
 const navigation = [
-  { name: "Dashboard", href: "/", icon: Home },
-  { name: "Projects", href: "/projects", icon: FolderOpen },
-  { name: "Project Management", href: "/project-management", icon: BarChart3 },
-  { name: "Client Portal", href: "/client-portal", icon: UserCheck },
-  { name: "Tasks", href: "/tasks", icon: CheckSquare },
-  { name: "Team", href: "/team", icon: Users },
-  { name: "Documents", href: "/documents", icon: FileText },
-  { name: "Calendar", href: "/calendar", icon: Calendar },
-  { name: "Messages", href: "/messages", icon: MessageSquare },
+  { name: 'Dashboard', href: '/', icon: Home },
+  { name: 'Projects', href: '/projects', icon: FolderOpen },
+  { name: 'Project Management', href: '/project-management', icon: BarChart3 },
+  { name: 'Client Portal', href: '/client-portal', icon: UserCheck },
+  { name: 'Tasks', href: '/tasks', icon: CheckSquare },
+  { name: 'Team', href: '/team', icon: Users },
+  { name: 'Documents', href: '/documents', icon: FileText },
+  { name: 'Calendar', href: '/calendar', icon: Calendar },
+  { name: 'Messages', href: '/messages', icon: MessageSquare },
 ];
 
 interface SidebarProps {
@@ -41,25 +41,37 @@ export function Sidebar({ className, onNavigate }: SidebarProps) {
 
   const getInitials = (name: string) => {
     return name
-      .split(" ")
+      .split(' ')
       .map((n) => n[0])
-      .join("")
+      .join('')
       .toUpperCase();
   };
 
-  const displayName = user?.firstName && user?.lastName 
-    ? `${user.firstName} ${user.lastName}` 
-    : user?.email || "User";
+  const displayName =
+    user?.firstName && user?.lastName
+      ? `${user.firstName} ${user.lastName}`
+      : user?.email || 'User';
 
-  const roleDisplay = user?.role === "manager" ? "Design Manager" 
-    : user?.role === "designer" ? "Interior Designer"
-    : user?.role === "contractor" ? "Contractor"
-    : user?.role === "client" ? "Client"
-    : user?.role === "admin" ? "Administrator"
-    : "Team Member";
+  const roleDisplay =
+    user?.role === 'manager'
+      ? 'Design Manager'
+      : user?.role === 'designer'
+      ? 'Interior Designer'
+      : user?.role === 'contractor'
+      ? 'Contractor'
+      : user?.role === 'client'
+      ? 'Client'
+      : user?.role === 'admin'
+      ? 'Administrator'
+      : 'Team Member';
 
   return (
-    <aside className={cn("flex flex-col h-full bg-white border-r border-border", className)}>
+    <aside
+      className={cn(
+        'flex flex-col h-full bg-white border-r border-border',
+        className
+      )}
+    >
       <div className="p-6">
         <div className="flex items-center mb-8">
           <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center mr-3">
@@ -67,32 +79,33 @@ export function Sidebar({ className, onNavigate }: SidebarProps) {
           </div>
           <span className="text-xl font-bold text-foreground">DesignFlow</span>
         </div>
-        
+
         <nav className="space-y-2">
           {navigation.map((item) => {
-            const isActive = location === item.href || 
-              (item.href !== "/" && location.startsWith(item.href));
-            
+            const isActive =
+              location === item.href ||
+              (item.href !== '/' && location.startsWith(item.href));
+
             return (
               <Link key={item.name} href={item.href}>
-                <a
+                <span
                   onClick={onNavigate}
                   className={cn(
-                    "nav-item flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-colors",
+                    'nav-item flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-colors',
                     isActive
-                      ? "active text-primary bg-primary-50"
-                      : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                      ? 'active text-primary bg-primary-50'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
                   )}
                 >
                   <item.icon className="mr-3 h-5 w-5" />
                   {item.name}
-                </a>
+                </span>
               </Link>
             );
           })}
         </nav>
       </div>
-      
+
       <div className="mt-auto p-6">
         <div className="border-t border-border pt-4">
           <div className="flex items-center space-x-3">
@@ -116,7 +129,7 @@ export function Sidebar({ className, onNavigate }: SidebarProps) {
                   <Settings className="h-4 w-4" />
                 </Button>
               </Link>
-              {(user?.role === "admin" || user?.role === "manager") && (
+              {(user?.role === 'admin' || user?.role === 'manager') && (
                 <Link href="/admin">
                   <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                     <UserCog className="h-4 w-4" />

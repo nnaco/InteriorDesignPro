@@ -1,10 +1,10 @@
-import { useCallback, useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
-import { CloudUpload, File, X } from "lucide-react";
+import { useCallback, useState } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
+import { CloudUpload, File, X } from 'lucide-react';
 
 interface FileUploadProps {
   projectId?: string;
@@ -19,36 +19,36 @@ export function FileUpload({ projectId }: FileUploadProps) {
   const uploadMutation = useMutation({
     mutationFn: async (file: File) => {
       const formData = new FormData();
-      formData.append("file", file);
+      formData.append('file', file);
       if (projectId) {
-        formData.append("projectId", projectId);
+        formData.append('projectId', projectId);
       }
 
-      const response = await fetch("/api/documents/upload", {
-        method: "POST",
+      const response = await fetch('/api/documents/upload', {
+        method: 'POST',
         body: formData,
-        credentials: "include",
+        credentials: 'include',
       });
 
       if (!response.ok) {
-        throw new Error("Upload failed");
+        throw new Error('Upload failed');
       }
 
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/documents"] });
+      queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
       toast({
-        title: "Success",
-        description: "File uploaded successfully",
+        title: 'Success',
+        description: 'File uploaded successfully',
       });
     },
     onError: (error) => {
-      console.error("Upload error:", error);
+      console.error('Upload error:', error);
       toast({
-        title: "Error",
-        description: "Failed to upload file",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to upload file',
+        variant: 'destructive',
       });
     },
   });
@@ -56,9 +56,9 @@ export function FileUpload({ projectId }: FileUploadProps) {
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") {
+    if (e.type === 'dragenter' || e.type === 'dragover') {
       setDragActive(true);
-    } else if (e.type === "dragleave") {
+    } else if (e.type === 'dragleave') {
       setDragActive(false);
     }
   }, []);
@@ -91,11 +91,11 @@ export function FileUpload({ projectId }: FileUploadProps) {
   };
 
   const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return "0 Bytes";
+    if (bytes === 0) return '0 Bytes';
     const k = 1024;
-    const sizes = ["Bytes", "KB", "MB", "GB"];
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
   return (
@@ -104,8 +104,8 @@ export function FileUpload({ projectId }: FileUploadProps) {
         <div
           className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
             dragActive
-              ? "border-primary bg-primary/5"
-              : "border-muted-foreground/25 hover:border-primary/50"
+              ? 'border-primary bg-primary/5'
+              : 'border-muted-foreground/25 hover:border-primary/50'
           }`}
           onDragEnter={handleDrag}
           onDragLeave={handleDrag}
@@ -167,11 +167,8 @@ export function FileUpload({ projectId }: FileUploadProps) {
               ))}
             </div>
             <div className="flex justify-end mt-4">
-              <Button
-                onClick={uploadFiles}
-                disabled={uploadMutation.isPending}
-              >
-                {uploadMutation.isPending ? "Uploading..." : "Upload Files"}
+              <Button onClick={uploadFiles} disabled={uploadMutation.isPending}>
+                {uploadMutation.isPending ? 'Uploading...' : 'Upload Files'}
               </Button>
             </div>
           </div>

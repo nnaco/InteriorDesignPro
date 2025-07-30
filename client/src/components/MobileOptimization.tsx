@@ -33,18 +33,18 @@ export const MobileCard: React.FC<MobileCardProps> = ({
   children,
   className,
   onClick,
-  compact = false
+  compact = false,
 }) => {
   const { isMobile } = useMobileDetection();
-  
+
   return (
     <div
       className={cn(
-        "bg-card border rounded-lg transition-colors",
-        onClick && "cursor-pointer hover:bg-accent/50 active:bg-accent",
-        isMobile && !compact && "p-4 mb-3",
-        isMobile && compact && "p-3 mb-2",
-        !isMobile && "p-6 mb-4",
+        'bg-card border rounded-lg transition-colors',
+        onClick && 'cursor-pointer hover:bg-accent/50 active:bg-accent',
+        isMobile && !compact && 'p-4 mb-3',
+        isMobile && compact && 'p-3 mb-2',
+        !isMobile && 'p-6 mb-4',
         className
       )}
       onClick={onClick}
@@ -72,29 +72,30 @@ export const MobileButton: React.FC<MobileButtonProps> = ({
   className,
   onClick,
   disabled = false,
-  fullWidth = false
+  fullWidth = false,
 }) => {
   const { isMobile } = useMobileDetection();
-  
+
   const baseStyles = cn(
-    "inline-flex items-center justify-center rounded-md font-medium transition-all",
-    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-    "disabled:pointer-events-none disabled:opacity-50",
+    'inline-flex items-center justify-center rounded-md font-medium transition-all',
+    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+    'disabled:pointer-events-none disabled:opacity-50',
     // Touch feedback for mobile
-    isMobile && "active:scale-[0.98] active:duration-75",
-    fullWidth && "w-full"
+    isMobile && 'active:scale-[0.98] active:duration-75',
+    fullWidth && 'w-full'
   );
 
   const variants = {
-    default: "bg-primary text-primary-foreground hover:bg-primary/90",
-    outline: "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
-    ghost: "hover:bg-accent hover:text-accent-foreground"
+    default: 'bg-primary text-primary-foreground hover:bg-primary/90',
+    outline:
+      'border border-input bg-background hover:bg-accent hover:text-accent-foreground',
+    ghost: 'hover:bg-accent hover:text-accent-foreground',
   };
 
   const sizes = {
-    sm: isMobile ? "h-10 px-4 text-sm" : "h-9 px-3 text-sm",
-    default: isMobile ? "h-12 px-6" : "h-10 px-4 py-2",
-    lg: isMobile ? "h-14 px-8 text-lg" : "h-11 px-8"
+    sm: isMobile ? 'h-10 px-4 text-sm' : 'h-9 px-3 text-sm',
+    default: isMobile ? 'h-12 px-6' : 'h-10 px-4 py-2',
+    lg: isMobile ? 'h-14 px-8 text-lg' : 'h-11 px-8',
   };
 
   return (
@@ -120,22 +121,27 @@ export const MobileTabs: React.FC<MobileTabsProps> = ({
   tabs,
   activeTab,
   onTabChange,
-  className
+  className,
 }) => {
   const { isMobile } = useMobileDetection();
 
   if (isMobile) {
     return (
-      <div className={cn("flex overflow-x-auto scrollbar-hide border-b bg-background", className)}>
+      <div
+        className={cn(
+          'flex overflow-x-auto scrollbar-hide border-b bg-background',
+          className
+        )}
+      >
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => onTabChange(tab.id)}
             className={cn(
-              "flex-shrink-0 flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors min-w-max",
+              'flex-shrink-0 flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors min-w-max',
               activeTab === tab.id
-                ? "border-primary text-primary"
-                : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
+                ? 'border-primary text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
             )}
           >
             {tab.icon}
@@ -148,16 +154,16 @@ export const MobileTabs: React.FC<MobileTabsProps> = ({
 
   // Desktop version with full width tabs
   return (
-    <div className={cn("flex border-b bg-background", className)}>
+    <div className={cn('flex border-b bg-background', className)}>
       {tabs.map((tab) => (
         <button
           key={tab.id}
           onClick={() => onTabChange(tab.id)}
           className={cn(
-            "flex-1 flex items-center justify-center gap-2 px-6 py-4 text-sm font-medium border-b-2 transition-colors",
+            'flex-1 flex items-center justify-center gap-2 px-6 py-4 text-sm font-medium border-b-2 transition-colors',
             activeTab === tab.id
-              ? "border-primary text-primary"
-              : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
+              ? 'border-primary text-primary'
+              : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
           )}
         >
           {tab.icon}
@@ -182,22 +188,24 @@ export const MobileField: React.FC<MobileFieldProps> = ({
   children,
   error,
   required = false,
-  className
+  className,
 }) => {
   const { isMobile } = useMobileDetection();
 
   return (
-    <div className={cn("space-y-2", isMobile && "mb-4", className)}>
-      <label className={cn(
-        "text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
-        isMobile && "text-base"
-      )}>
+    <div className={cn('space-y-2', isMobile && 'mb-4', className)}>
+      <label
+        className={cn(
+          'text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70',
+          isMobile && 'text-base'
+        )}
+      >
         {label}
         {required && <span className="text-destructive ml-1">*</span>}
       </label>
       {children}
       {error && (
-        <p className={cn("text-sm text-destructive", isMobile && "text-base")}>
+        <p className={cn('text-sm text-destructive', isMobile && 'text-base')}>
           {error}
         </p>
       )}
@@ -219,30 +227,24 @@ export const MobileListItem: React.FC<MobileListItemProps> = ({
   onClick,
   rightElement,
   className,
-  dense = false
+  dense = false,
 }) => {
   const { isMobile } = useMobileDetection();
 
   return (
     <div
       className={cn(
-        "flex items-center justify-between border-b last:border-b-0 transition-colors",
-        onClick && "cursor-pointer hover:bg-accent/50 active:bg-accent",
-        isMobile && !dense && "py-4 px-4",
-        isMobile && dense && "py-3 px-4",
-        !isMobile && "py-3 px-6",
+        'flex items-center justify-between border-b last:border-b-0 transition-colors',
+        onClick && 'cursor-pointer hover:bg-accent/50 active:bg-accent',
+        isMobile && !dense && 'py-4 px-4',
+        isMobile && dense && 'py-3 px-4',
+        !isMobile && 'py-3 px-6',
         className
       )}
       onClick={onClick}
     >
-      <div className="flex-1 min-w-0">
-        {children}
-      </div>
-      {rightElement && (
-        <div className="flex-shrink-0 ml-4">
-          {rightElement}
-        </div>
-      )}
+      <div className="flex-1 min-w-0">{children}</div>
+      {rightElement && <div className="flex-shrink-0 ml-4">{rightElement}</div>}
     </div>
   );
 };
@@ -263,7 +265,7 @@ export const MobileInput: React.FC<MobileInputProps> = ({
   onChange,
   type = 'text',
   className,
-  disabled = false
+  disabled = false,
 }) => {
   const { isMobile } = useMobileDetection();
 
@@ -275,12 +277,12 @@ export const MobileInput: React.FC<MobileInputProps> = ({
       onChange={(e) => onChange?.(e.target.value)}
       disabled={disabled}
       className={cn(
-        "flex w-full rounded-md border border-input bg-background px-3 text-sm ring-offset-background",
-        "file:border-0 file:bg-transparent file:text-sm file:font-medium",
-        "placeholder:text-muted-foreground",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-        "disabled:cursor-not-allowed disabled:opacity-50",
-        isMobile ? "h-12 text-base" : "h-10 py-2",
+        'flex w-full rounded-md border border-input bg-background px-3 text-sm ring-offset-background',
+        'file:border-0 file:bg-transparent file:text-sm file:font-medium',
+        'placeholder:text-muted-foreground',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+        'disabled:cursor-not-allowed disabled:opacity-50',
+        isMobile ? 'h-12 text-base' : 'h-10 py-2',
         className
       )}
     />
@@ -307,7 +309,7 @@ export const useSwipeGesture = (
 
   const onTouchEnd = () => {
     if (!touchStart || !touchEnd) return;
-    
+
     const distance = touchStart - touchEnd;
     const isLeftSwipe = distance > threshold;
     const isRightSwipe = distance < -threshold;
@@ -323,7 +325,7 @@ export const useSwipeGesture = (
   return {
     onTouchStart,
     onTouchMove,
-    onTouchEnd
+    onTouchEnd,
   };
 };
 
@@ -339,7 +341,7 @@ export const MobileSheet: React.FC<MobileSheetProps> = ({
   isOpen,
   onClose,
   children,
-  title
+  title,
 }) => {
   const { isMobile } = useMobileDetection();
 
@@ -370,9 +372,7 @@ export const MobileSheet: React.FC<MobileSheetProps> = ({
               ✕
             </button>
           </div>
-          <div className="flex-1 overflow-auto">
-            {children}
-          </div>
+          <div className="flex-1 overflow-auto">{children}</div>
         </div>
       </div>
     );
@@ -384,16 +384,11 @@ export const MobileSheet: React.FC<MobileSheetProps> = ({
       <div className="bg-background rounded-lg max-w-md w-full max-h-[90vh] overflow-auto">
         <div className="flex items-center justify-between p-6 border-b">
           <h2 className="text-lg font-semibold">{title}</h2>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-accent rounded-md"
-          >
+          <button onClick={onClose} className="p-2 hover:bg-accent rounded-md">
             ✕
           </button>
         </div>
-        <div className="p-6">
-          {children}
-        </div>
+        <div className="p-6">{children}</div>
       </div>
     </div>
   );
