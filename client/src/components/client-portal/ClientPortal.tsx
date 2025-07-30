@@ -1,12 +1,19 @@
-import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Calendar, FileText, MessageSquare, CreditCard, Eye, Download } from "lucide-react";
-import { format } from "date-fns";
+import { useQuery } from '@tanstack/react-query';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  Calendar,
+  FileText,
+  MessageSquare,
+  CreditCard,
+  Eye,
+  Download,
+} from 'lucide-react';
+import { format } from 'date-fns';
 
 interface ClientProject {
   id: string;
@@ -56,9 +63,12 @@ export function ClientPortal({ clientId }: ClientPortalProps) {
               <AvatarFallback>CL</AvatarFallback>
             </Avatar>
             <div>
-              <h1 className="text-2xl font-bold">Welcome to Your Project Portal</h1>
+              <h1 className="text-2xl font-bold">
+                Welcome to Your Project Portal
+              </h1>
               <p className="text-gray-600">
-                Track your projects, view documents, and communicate with your design team
+                Track your projects, view documents, and communicate with your
+                design team
               </p>
             </div>
           </div>
@@ -119,11 +129,16 @@ interface ProjectCardProps {
 function ProjectCard({ project }: ProjectCardProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return 'bg-green-100 text-green-800';
-      case 'planning': return 'bg-blue-100 text-blue-800';
-      case 'on_hold': return 'bg-yellow-100 text-yellow-800';
-      case 'completed': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'active':
+        return 'bg-green-100 text-green-800';
+      case 'planning':
+        return 'bg-blue-100 text-blue-800';
+      case 'on_hold':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'completed':
+        return 'bg-gray-100 text-gray-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -152,11 +167,15 @@ function ProjectCard({ project }: ProjectCardProps) {
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
             <p className="text-gray-500">Start Date</p>
-            <p className="font-medium">{format(new Date(project.startDate), 'MMM d, yyyy')}</p>
+            <p className="font-medium">
+              {format(new Date(project.startDate), 'MMM d, yyyy')}
+            </p>
           </div>
           <div>
             <p className="text-gray-500">Due Date</p>
-            <p className="font-medium">{format(new Date(project.dueDate), 'MMM d, yyyy')}</p>
+            <p className="font-medium">
+              {format(new Date(project.dueDate), 'MMM d, yyyy')}
+            </p>
           </div>
         </div>
 
@@ -164,10 +183,13 @@ function ProjectCard({ project }: ProjectCardProps) {
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
             <span>Budget Utilization</span>
-            <span>${project.spent.toLocaleString()} / ${project.budget.toLocaleString()}</span>
+            <span>
+              ${project.spent.toLocaleString()} / $
+              {project.budget.toLocaleString()}
+            </span>
           </div>
-          <Progress 
-            value={(project.spent / project.budget) * 100} 
+          <Progress
+            value={(project.spent / project.budget) * 100}
             className="h-2"
           />
         </div>
@@ -252,10 +274,14 @@ function InvoicesTable({ invoices }: InvoicesTableProps) {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'paid': return 'bg-green-100 text-green-800';
-      case 'sent': return 'bg-blue-100 text-blue-800';
-      case 'overdue': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'paid':
+        return 'bg-green-100 text-green-800';
+      case 'sent':
+        return 'bg-blue-100 text-blue-800';
+      case 'overdue':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -267,7 +293,10 @@ function InvoicesTable({ invoices }: InvoicesTableProps) {
       <CardContent>
         <div className="space-y-4">
           {invoices.map((invoice) => (
-            <div key={invoice.id} className="flex items-center justify-between p-4 border rounded-lg">
+            <div
+              key={invoice.id}
+              className="flex items-center justify-between p-4 border rounded-lg"
+            >
               <div>
                 <h4 className="font-medium">{invoice.invoiceNumber}</h4>
                 <p className="text-sm text-gray-600">
@@ -278,7 +307,9 @@ function InvoicesTable({ invoices }: InvoicesTableProps) {
                 </p>
               </div>
               <div className="text-right">
-                <div className="font-bold text-lg">${invoice.total.toFixed(2)}</div>
+                <div className="font-bold text-lg">
+                  ${invoice.total.toFixed(2)}
+                </div>
                 <Badge className={getStatusColor(invoice.status)}>
                   {invoice.status}
                 </Badge>
@@ -324,7 +355,9 @@ function MessagesCenter({ messages, clientId }: MessagesCenterProps) {
                 </Avatar>
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <span className="font-medium text-sm">{message.senderName}</span>
+                    <span className="font-medium text-sm">
+                      {message.senderName}
+                    </span>
                     <span className="text-xs text-gray-500">
                       {format(new Date(message.createdAt), 'MMM d, HH:mm')}
                     </span>
@@ -335,7 +368,7 @@ function MessagesCenter({ messages, clientId }: MessagesCenterProps) {
             ))}
           </div>
         )}
-        
+
         <div className="mt-4 pt-4 border-t">
           <Button className="w-full">
             <MessageSquare className="h-4 w-4 mr-2" />

@@ -5,46 +5,54 @@ DesignFlow is a comprehensive full-stack enterprise web application designed spe
 ## 🚀 Features
 
 ### 🔐 Authentication & Authorization
+
 - **Replit Auth Integration**: Secure OIDC-based authentication
 - **Role-Based Access Control**: Support for Admin, Manager, Designer, Contractor, and Client roles
 - **Session Management**: Secure session handling with PostgreSQL storage
 
 ### 📊 Project Management
+
 - **Project Lifecycle Management**: Planning → Active → On Hold → Completed states
 - **Resource Tracking**: Budget management and progress monitoring
 - **Team Assignment**: Role-based project member allocation
 - **Client Management**: Integrated client information and project association
 
 ### ✅ Task Management
+
 - **Kanban Board Interface**: Drag-and-drop task organization
 - **Priority System**: High, Medium, Low priority levels
 - **Due Date Tracking**: Deadline management with overdue notifications
 - **Task Assignment**: Individual and team task allocation
 
 ### 📁 Document Management
+
 - **Multi-file Upload**: Drag-and-drop interface with version control
 - **File Organization**: Category-based document sorting
 - **Version Control**: Complete file versioning system
 - **File Type Support**: Images, PDFs, CAD files, 3D models, and more
 
 ### 💬 Real-time Communication
+
 - **WebSocket Integration**: Live messaging between team members
 - **Notification System**: Real-time project and task updates
 - **Activity Feed**: System-wide activity tracking
 
 ### 📧 Email Notifications
+
 - **Project Assignment**: Automated project assignment notifications
 - **Task Reminders**: Due date and overdue task alerts
 - **Status Updates**: Project and task status change notifications
 - **Customizable Templates**: Professional email templates
 
 ### 📈 Advanced Analytics
+
 - **Performance Metrics**: Project completion rates and average durations
 - **User Productivity**: Task completion analytics and user activity
 - **Time Series Data**: Historical trends and patterns
 - **Interactive Charts**: Comprehensive data visualizations
 
 ### 📱 Mobile Optimization
+
 - **Responsive Design**: Mobile-first approach with touch-optimized components
 - **Swipe Gestures**: Native mobile interactions
 - **Adaptive UI**: Components that adjust to screen size and device type
@@ -52,6 +60,7 @@ DesignFlow is a comprehensive full-stack enterprise web application designed spe
 ## 🛠 Technology Stack
 
 ### Frontend
+
 - **React 18** with TypeScript
 - **Wouter** for client-side routing
 - **Shadcn/UI** components built on Radix UI primitives
@@ -62,6 +71,7 @@ DesignFlow is a comprehensive full-stack enterprise web application designed spe
 - **Framer Motion** for animations
 
 ### Backend
+
 - **Node.js** with Express.js framework
 - **TypeScript** with ES modules
 - **PostgreSQL** with Neon serverless driver
@@ -71,6 +81,7 @@ DesignFlow is a comprehensive full-stack enterprise web application designed spe
 - **SendGrid** for email notifications
 
 ### Infrastructure
+
 - **Replit** for development and hosting
 - **PostgreSQL** database with session storage
 - **File Storage** with versioning support
@@ -78,7 +89,7 @@ DesignFlow is a comprehensive full-stack enterprise web application designed spe
 
 ## 📋 Prerequisites
 
-- Node.js 18+ 
+- Node.js 18+
 - PostgreSQL database
 - SendGrid API key (for email notifications)
 - Replit account (for authentication)
@@ -86,17 +97,20 @@ DesignFlow is a comprehensive full-stack enterprise web application designed spe
 ## 🚀 Installation & Setup
 
 ### 1. Clone the Repository
+
 ```bash
 git clone <your-repository-url>
 cd designflow
 ```
 
 ### 2. Install Dependencies
+
 ```bash
 npm install
 ```
 
 ### 3. Environment Configuration
+
 Create a `.env` file with the following variables:
 
 ```env
@@ -123,12 +137,14 @@ RATE_LIMIT_MAX_REQUESTS=1000
 ```
 
 ### 4. Database Setup
+
 ```bash
 # Push database schema
 npm run db:push
 ```
 
 ### 5. Start Development Server
+
 ```bash
 npm run dev
 ```
@@ -138,6 +154,7 @@ The application will be available at `http://localhost:5000`
 ## 📖 API Documentation
 
 ### Authentication Endpoints
+
 ```
 GET  /api/login        # Initiate login flow
 GET  /api/callback     # OAuth callback
@@ -146,6 +163,7 @@ GET  /api/auth/user    # Get current user
 ```
 
 ### Project Management
+
 ```
 GET    /api/projects           # Get all projects
 POST   /api/projects           # Create project
@@ -157,6 +175,7 @@ POST   /api/projects/:id/members # Add project member
 ```
 
 ### Task Management
+
 ```
 GET    /api/tasks              # Get all tasks
 POST   /api/tasks              # Create task
@@ -167,6 +186,7 @@ PATCH  /api/tasks/:id/status   # Update task status
 ```
 
 ### Document Management
+
 ```
 GET    /api/documents          # Get documents
 POST   /api/documents          # Upload document
@@ -177,6 +197,7 @@ POST   /api/documents/:id/versions # Create new version
 ```
 
 ### Communication
+
 ```
 GET    /api/conversations      # Get conversations
 POST   /api/messages           # Send message
@@ -185,6 +206,7 @@ PATCH  /api/messages/:id/read  # Mark as read
 ```
 
 ### Analytics
+
 ```
 GET    /api/analytics          # Get comprehensive analytics
 GET    /api/dashboard/stats    # Get dashboard statistics
@@ -192,6 +214,7 @@ GET    /api/health            # System health check
 ```
 
 ### User Management
+
 ```
 GET    /api/users              # Get all users
 GET    /api/users/:id          # Get user by ID
@@ -199,6 +222,7 @@ PUT    /api/users/:id/role     # Update user role (Admin only)
 ```
 
 ### Notifications
+
 ```
 GET    /api/notifications      # Get user notifications
 PATCH  /api/notifications/:id/read # Mark notification as read
@@ -208,6 +232,7 @@ POST   /api/notifications/mark-all-read # Mark all as read
 ## 🏗 Architecture
 
 ### Frontend Architecture
+
 ```
 client/src/
 ├── components/          # Reusable UI components
@@ -222,6 +247,7 @@ client/src/
 ```
 
 ### Backend Architecture
+
 ```
 server/
 ├── config/             # Environment configuration
@@ -238,11 +264,13 @@ server/
 ```
 
 ### Database Schema
+
 ```
 shared/schema.ts        # Drizzle schema definitions
 ```
 
 Key tables:
+
 - `users` - User accounts and authentication
 - `projects` - Project management
 - `tasks` - Task tracking
@@ -254,18 +282,21 @@ Key tables:
 ## 🔒 Security Features
 
 ### Authentication & Authorization
+
 - OIDC-compliant authentication via Replit
 - Role-based access control (RBAC)
 - Secure session management with HTTP-only cookies
 - CSRF protection
 
 ### API Security
+
 - Rate limiting on all endpoints
 - Input validation with Zod schemas
 - SQL injection protection via Drizzle ORM
 - File upload security with type validation
 
 ### Infrastructure Security
+
 - Helmet.js for security headers
 - CORS configuration for cross-origin requests
 - Environment variable protection
@@ -274,12 +305,14 @@ Key tables:
 ## 📊 Performance & Monitoring
 
 ### Performance Features
+
 - Database query optimization
 - Efficient file storage with checksums
 - Response time monitoring
 - Memory usage tracking
 
 ### Monitoring & Logging
+
 - Request/response logging
 - Error tracking and reporting
 - Health check endpoints
@@ -288,25 +321,31 @@ Key tables:
 ## 🚀 Deployment
 
 ### Production Environment Variables
+
 Ensure all required environment variables are set:
+
 - `NODE_ENV=production`
 - Database credentials
 - Email service configuration
 - Security keys and secrets
 
 ### Database Migration
+
 ```bash
 npm run db:push
 ```
 
 ### Build and Start
+
 ```bash
 npm run build
 npm start
 ```
 
 ### Health Monitoring
+
 Monitor application health via:
+
 - `GET /api/health` - Application health status
 - System metrics and error rates
 - Database connection status
@@ -314,18 +353,21 @@ Monitor application health via:
 ## 🔧 Development
 
 ### Code Style
+
 - TypeScript strict mode enabled
 - ESLint and Prettier configuration
 - Consistent naming conventions
 - Comprehensive type definitions
 
 ### Testing
+
 - Error boundaries for React components
 - Input validation on all endpoints
 - Comprehensive error handling
 - Database transaction management
 
 ### Development Commands
+
 ```bash
 npm run dev          # Start development server
 npm run build        # Build for production
@@ -352,6 +394,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🆘 Support
 
 For support and questions:
+
 - Create an issue in the repository
 - Check the documentation
 - Review the API endpoints above
@@ -359,6 +402,7 @@ For support and questions:
 ## 🎯 Roadmap
 
 ### Upcoming Features
+
 - [ ] Advanced reporting dashboard
 - [ ] Gantt chart project visualization
 - [ ] Time tracking integration

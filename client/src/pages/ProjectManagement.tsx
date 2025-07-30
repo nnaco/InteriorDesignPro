@@ -1,19 +1,25 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { MainLayout } from "@/components/layout/MainLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Calendar, BarChart3, Clock, FileText, Layout } from "lucide-react";
-import { GanttChart } from "@/components/gantt/GanttChart";
-import { TimeTracker } from "@/components/time-tracking/TimeTracker";
-import { InvoiceGenerator } from "@/components/invoicing/InvoiceGenerator";
-import { ProjectTemplates } from "@/components/templates/ProjectTemplates";
-import { format } from "date-fns";
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { MainLayout } from '@/components/layout/MainLayout';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Calendar, BarChart3, Clock, FileText, Layout } from 'lucide-react';
+import { GanttChart } from '@/components/gantt/GanttChart';
+import { TimeTracker } from '@/components/time-tracking/TimeTracker';
+import { InvoiceGenerator } from '@/components/invoicing/InvoiceGenerator';
+import { ProjectTemplates } from '@/components/templates/ProjectTemplates';
+import { format } from 'date-fns';
 
 export default function ProjectManagement() {
-  const [selectedProject, setSelectedProject] = useState<string>("");
+  const [selectedProject, setSelectedProject] = useState<string>('');
 
   // Fetch projects for selection
   const { data: projects = [] } = useQuery({
@@ -27,7 +33,8 @@ export default function ProjectManagement() {
           <div>
             <h1 className="text-3xl font-bold">Advanced Project Management</h1>
             <p className="text-gray-600">
-              Comprehensive project visualization, time tracking, and client management tools
+              Comprehensive project visualization, time tracking, and client
+              management tools
             </p>
           </div>
         </div>
@@ -44,7 +51,10 @@ export default function ProjectManagement() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Select Project</label>
-                <Select value={selectedProject} onValueChange={setSelectedProject}>
+                <Select
+                  value={selectedProject}
+                  onValueChange={setSelectedProject}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Choose a project to manage" />
                   </SelectTrigger>
@@ -57,22 +67,29 @@ export default function ProjectManagement() {
                   </SelectContent>
                 </Select>
               </div>
-              
+
               {selectedProject && (
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Project Details</label>
                   <div className="flex items-center gap-2">
                     {(() => {
-                      const project = projects.find((p: any) => p.id === selectedProject);
+                      const project = projects.find(
+                        (p: any) => p.id === selectedProject
+                      );
                       if (!project) return null;
-                      
+
                       const getStatusColor = (status: string) => {
                         switch (status) {
-                          case 'active': return 'bg-green-100 text-green-800';
-                          case 'planning': return 'bg-blue-100 text-blue-800';
-                          case 'on_hold': return 'bg-yellow-100 text-yellow-800';
-                          case 'completed': return 'bg-gray-100 text-gray-800';
-                          default: return 'bg-gray-100 text-gray-800';
+                          case 'active':
+                            return 'bg-green-100 text-green-800';
+                          case 'planning':
+                            return 'bg-blue-100 text-blue-800';
+                          case 'on_hold':
+                            return 'bg-yellow-100 text-yellow-800';
+                          case 'completed':
+                            return 'bg-gray-100 text-gray-800';
+                          default:
+                            return 'bg-gray-100 text-gray-800';
                         }
                       };
 
@@ -86,7 +103,8 @@ export default function ProjectManagement() {
                           </span>
                           {project.dueDate && (
                             <span className="text-sm text-gray-600">
-                              Due: {format(new Date(project.dueDate), 'MMM d, yyyy')}
+                              Due:{' '}
+                              {format(new Date(project.dueDate), 'MMM d, yyyy')}
                             </span>
                           )}
                         </div>
@@ -106,7 +124,10 @@ export default function ProjectManagement() {
               <Calendar className="h-4 w-4" />
               Gantt Chart
             </TabsTrigger>
-            <TabsTrigger value="time-tracking" className="flex items-center gap-2">
+            <TabsTrigger
+              value="time-tracking"
+              className="flex items-center gap-2"
+            >
               <Clock className="h-4 w-4" />
               Time Tracking
             </TabsTrigger>
@@ -123,9 +144,12 @@ export default function ProjectManagement() {
           <TabsContent value="gantt" className="space-y-6">
             <div className="space-y-4">
               <div>
-                <h3 className="text-lg font-semibold">Project Timeline Visualization</h3>
+                <h3 className="text-lg font-semibold">
+                  Project Timeline Visualization
+                </h3>
                 <p className="text-gray-600">
-                  Interactive Gantt chart showing task dependencies, timeline, and project progress
+                  Interactive Gantt chart showing task dependencies, timeline,
+                  and project progress
                 </p>
               </div>
               {selectedProject ? (
@@ -145,9 +169,12 @@ export default function ProjectManagement() {
           <TabsContent value="time-tracking" className="space-y-6">
             <div className="space-y-4">
               <div>
-                <h3 className="text-lg font-semibold">Time Tracking & Management</h3>
+                <h3 className="text-lg font-semibold">
+                  Time Tracking & Management
+                </h3>
                 <p className="text-gray-600">
-                  Track time spent on tasks, generate reports, and manage project billing
+                  Track time spent on tasks, generate reports, and manage
+                  project billing
                 </p>
               </div>
               {selectedProject ? (
@@ -167,18 +194,23 @@ export default function ProjectManagement() {
           <TabsContent value="invoicing" className="space-y-6">
             <div className="space-y-4">
               <div>
-                <h3 className="text-lg font-semibold">Invoice Generation & Management</h3>
+                <h3 className="text-lg font-semibold">
+                  Invoice Generation & Management
+                </h3>
                 <p className="text-gray-600">
-                  Create professional invoices, track payments, and manage client billing
+                  Create professional invoices, track payments, and manage
+                  client billing
                 </p>
               </div>
               {selectedProject ? (
                 (() => {
-                  const project = projects.find((p: any) => p.id === selectedProject);
+                  const project = projects.find(
+                    (p: any) => p.id === selectedProject
+                  );
                   return (
-                    <InvoiceGenerator 
-                      projectId={selectedProject} 
-                      clientId={project?.clientId} 
+                    <InvoiceGenerator
+                      projectId={selectedProject}
+                      clientId={project?.clientId}
                     />
                   );
                 })()
@@ -197,9 +229,12 @@ export default function ProjectManagement() {
           <TabsContent value="templates" className="space-y-6">
             <div className="space-y-4">
               <div>
-                <h3 className="text-lg font-semibold">Project Templates & Automation</h3>
+                <h3 className="text-lg font-semibold">
+                  Project Templates & Automation
+                </h3>
                 <p className="text-gray-600">
-                  Create reusable project templates to standardize workflows and accelerate project setup
+                  Create reusable project templates to standardize workflows and
+                  accelerate project setup
                 </p>
               </div>
               <ProjectTemplates />

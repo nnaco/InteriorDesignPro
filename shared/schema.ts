@@ -29,12 +29,14 @@ export const sessions = pgTable(
 
 // User storage table (required for Replit Auth)
 export const users = pgTable('users', {
-  id: varchar('id').primaryKey().notNull(),
-  email: varchar('email').unique(),
+  id: uuid('id').primaryKey().defaultRandom(),
+  email: varchar('email').notNull().unique(),
   firstName: varchar('first_name'),
   lastName: varchar('last_name'),
+  hasJoined: boolean('has_joined').default(false),
   profileImageUrl: varchar('profile_image_url'),
-  role: varchar('role').notNull().default('designer'), // manager, designer, contractor, client, admin
+  role: varchar('role').notNull(), // manager, designer, contractor, client, admin
+  sub: varchar('sub').unique(),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });
@@ -49,7 +51,7 @@ export const projects = pgTable('projects', {
   progress: integer('progress').default(0),
   startDate: date('start_date'),
   endDate: date('end_date'),
-  createdBy: varchar('created_by').references(() => users.id),
+  createdBy: uuid('created_by').references(() => users.id),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });
@@ -61,9 +63,9 @@ export const tasks = pgTable('tasks', {
   status: varchar('status').notNull().default('todo'), // todo, in_progress, review, done
   priority: varchar('priority').notNull().default('medium'), // low, medium, high
   projectId: uuid('project_id').references(() => projects.id),
-  assigneeId: varchar('assignee_id').references(() => users.id),
+  assigneeId: uuid('assignee_id').references(() => users.id),
   dueDate: date('due_date'),
-  createdBy: varchar('created_by').references(() => users.id),
+  createdBy: uuid('created_by').references(() => users.id),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });
@@ -71,7 +73,7 @@ export const tasks = pgTable('tasks', {
 export const projectMembers = pgTable('project_members', {
   id: uuid('id').primaryKey().defaultRandom(),
   projectId: uuid('project_id').references(() => projects.id),
-  userId: varchar('user_id').references(() => users.id),
+  userId: uuid('user_id').references(() => users.id),
   role: varchar('role').default('member'), // lead, member
   createdAt: timestamp('created_at').defaultNow(),
 });
@@ -92,15 +94,15 @@ export const documents = pgTable('documents', {
   parentDocumentId: uuid('parent_document_id').references(() => documents.id),
   description: text('description').default(''),
   projectId: uuid('project_id').references(() => projects.id),
-  uploadedBy: varchar('uploaded_by').references(() => users.id),
+  uploadedBy: uuid('uploaded_by').references(() => users.id),
   createdAt: timestamp('created_at').defaultNow(),
 });
 
 export const messages = pgTable('messages', {
   id: uuid('id').primaryKey().defaultRandom(),
   content: text('content').notNull(),
-  senderId: varchar('sender_id').references(() => users.id),
-  recipientId: varchar('recipient_id').references(() => users.id),
+  senderId: uuid('sender_id').references(() => users.id),
+  recipientId: uuid('recipient_id').references(() => users.id),
   conversationId: uuid('conversation_id'),
   isRead: boolean('is_read').default(false),
   createdAt: timestamp('created_at').defaultNow(),
@@ -111,7 +113,7 @@ export const notifications = pgTable('notifications', {
   title: varchar('title', { length: 255 }).notNull(),
   message: text('message'),
   type: varchar('type').default('info'), // info, success, warning, error
-  userId: varchar('user_id').references(() => users.id),
+  userId: uuid('user_id').references(() => users.id),
   isRead: boolean('is_read').default(false),
   metadata: jsonb('metadata'),
   createdAt: timestamp('created_at').defaultNow(),
@@ -122,7 +124,7 @@ export const activities = pgTable('activities', {
   action: varchar('action', { length: 255 }).notNull(),
   entityType: varchar('entity_type'), // project, task, document
   entityId: uuid('entity_id'),
-  userId: varchar('user_id').references(() => users.id),
+  userId: uuid('user_id').references(() => users.id),
   metadata: jsonb('metadata'),
   createdAt: timestamp('created_at').defaultNow(),
 });
@@ -132,7 +134,7 @@ export const timeEntries = pgTable('time_entries', {
   id: uuid('id').primaryKey().defaultRandom(),
   taskId: uuid('task_id').references(() => tasks.id),
   projectId: uuid('project_id').references(() => projects.id),
-  userId: varchar('user_id').references(() => users.id),
+  userId: uuid('user_id').references(() => users.id),
   startTime: timestamp('start_time').notNull(),
   endTime: timestamp('end_time'),
   duration: integer('duration').default(0), // in seconds
@@ -146,7 +148,7 @@ export const invoices = pgTable('invoices', {
   id: uuid('id').primaryKey().defaultRandom(),
   invoiceNumber: varchar('invoice_number', { length: 50 }).notNull().unique(),
   projectId: uuid('project_id').references(() => projects.id),
-  clientId: varchar('client_id').references(() => users.id),
+  clientId: uuid('client_id').references(() => users.id),
   status: varchar('status').default('draft'), // draft, sent, paid, overdue
   issueDate: timestamp('issue_date').defaultNow(),
   dueDate: timestamp('due_date').notNull(),
@@ -178,7 +180,7 @@ export const projectTemplates = pgTable('project_templates', {
   estimatedDuration: integer('estimated_duration'), // in days
   estimatedBudget: decimal('estimated_budget', { precision: 10, scale: 2 }),
   isPublic: boolean('is_public').default(false),
-  createdBy: varchar('created_by').references(() => users.id),
+  createdBy: uuid('created_by').references(() => users.id),
   usageCount: integer('usage_count').default(0),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
@@ -210,7 +212,7 @@ export const templateMilestones = pgTable('template_milestones', {
 // Client portal access
 export const clientPortalAccess = pgTable('client_portal_access', {
   id: uuid('id').primaryKey().defaultRandom(),
-  clientId: varchar('client_id').references(() => users.id),
+  clientId: uuid('client_id').references(() => users.id),
   projectId: uuid('project_id').references(() => projects.id),
   accessLevel: varchar('access_level').default('view'), // view, comment, upload
   isActive: boolean('is_active').default(true),

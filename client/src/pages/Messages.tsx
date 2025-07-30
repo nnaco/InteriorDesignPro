@@ -1,40 +1,48 @@
-import { useState, useEffect } from "react";
-import { MainLayout } from "@/components/layout/MainLayout";
-import { ChatList } from "@/components/messages/ChatList";
-import { ChatWindow } from "@/components/messages/ChatWindow";
-import { Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks/useAuth";
-import { useToast } from "@/hooks/use-toast";
-import { Plus } from "lucide-react";
+import { useState, useEffect } from 'react';
+import { MainLayout } from '@/components/layout/MainLayout';
+import { ChatList } from '@/components/messages/ChatList';
+import { ChatWindow } from '@/components/messages/ChatWindow';
+import { Button } from '@/components/ui/button';
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
+import { Plus } from 'lucide-react';
 
 export default function Messages() {
-  const [selectedConversationId, setSelectedConversationId] = useState<string>();
+  const [selectedConversationId, setSelectedConversationId] =
+    useState<string>();
   const [selectedRecipientId, setSelectedRecipientId] = useState<string>();
-  
+
   const { toast } = useToast();
   const { isAuthenticated, isLoading } = useAuth();
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       toast({
-        title: "Unauthorized",
-        description: "You are logged out. Logging in again...",
-        variant: "destructive",
+        title: 'Unauthorized',
+        description: 'You are logged out. Logging in again...',
+        variant: 'destructive',
       });
       setTimeout(() => {
-        window.location.href = "/api/login";
+        window.location.href = '/api/login';
       }, 500);
       return;
     }
   }, [isAuthenticated, isLoading, toast]);
 
-  const handleConversationSelect = (conversationId: string, recipientId: string) => {
+  const handleConversationSelect = (
+    conversationId: string,
+    recipientId: string
+  ) => {
     setSelectedConversationId(conversationId);
     setSelectedRecipientId(recipientId);
   };
 
   if (isLoading || !isAuthenticated) {
-    return <MainLayout title="Messages"><div>Loading...</div></MainLayout>;
+    return (
+      <MainLayout title="Messages">
+        <div>Loading...</div>
+      </MainLayout>
+    );
   }
 
   return (

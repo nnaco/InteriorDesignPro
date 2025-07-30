@@ -62,7 +62,7 @@ class MonitoringService {
 
     res.send = function (data) {
       const responseTime = Date.now() - startTime;
-      
+
       // Create log entry
       const logEntry: RequestLog = {
         timestamp: new Date().toISOString(),
@@ -70,7 +70,7 @@ class MonitoringService {
         url: req.originalUrl || req.url,
         userAgent: req.get('User-Agent'),
         ip: req.ip || req.connection.remoteAddress || 'unknown',
-        userId: (req as any).user?.claims?.sub,
+        userId: (req as any).user?.sub,
         responseTime,
         statusCode: res.statusCode,
       };
@@ -94,7 +94,7 @@ class MonitoringService {
   private addRequestLog(logEntry: RequestLog): void {
     this.requestLogs.push(logEntry);
     this.responseTimes.push(logEntry.responseTime);
-    
+
     // Update metrics
     this.metrics.requestCount++;
     if (logEntry.statusCode >= 400) {
@@ -114,11 +114,17 @@ class MonitoringService {
     // Log errors and slow requests
     if (config.isDevelopment) {
       if (logEntry.statusCode >= 500) {
-        console.error(`[ERROR] ${logEntry.method} ${logEntry.url} - ${logEntry.statusCode} (${logEntry.responseTime}ms)`);
+        console.error(
+          `[ERROR] ${logEntry.method} ${logEntry.url} - ${logEntry.statusCode} (${logEntry.responseTime}ms)`
+        );
       } else if (logEntry.responseTime > 2000) {
-        console.warn(`[SLOW] ${logEntry.method} ${logEntry.url} - ${logEntry.responseTime}ms`);
+        console.warn(
+          `[SLOW] ${logEntry.method} ${logEntry.url} - ${logEntry.responseTime}ms`
+        );
       } else if (config.monitoring.logLevel === 'debug') {
-        console.debug(`[REQ] ${logEntry.method} ${logEntry.url} - ${logEntry.statusCode} (${logEntry.responseTime}ms)`);
+        console.debug(
+          `[REQ] ${logEntry.method} ${logEntry.url} - ${logEntry.statusCode} (${logEntry.responseTime}ms)`
+        );
       }
     }
   }
@@ -126,8 +132,9 @@ class MonitoringService {
   private updateMetrics(): void {
     // Update average response time
     if (this.responseTimes.length > 0) {
-      this.metrics.averageResponseTime = 
-        this.responseTimes.reduce((sum, time) => sum + time, 0) / this.responseTimes.length;
+      this.metrics.averageResponseTime =
+        this.responseTimes.reduce((sum, time) => sum + time, 0) /
+        this.responseTimes.length;
     }
 
     // Update memory usage
@@ -150,8 +157,8 @@ class MonitoringService {
 
   private cleanOldLogs(): void {
     const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    this.requestLogs = this.requestLogs.filter(log => 
-      new Date(log.timestamp) > oneDayAgo
+    this.requestLogs = this.requestLogs.filter(
+      (log) => new Date(log.timestamp) > oneDayAgo
     );
   }
 
@@ -166,20 +173,22 @@ class MonitoringService {
 
   getErrorLogs(limit = 50): RequestLog[] {
     return this.requestLogs
-      .filter(log => log.statusCode >= 400)
+      .filter((log) => log.statusCode >= 400)
       .slice(-limit);
   }
 
   getSlowRequests(threshold = 2000, limit = 50): RequestLog[] {
     return this.requestLogs
-      .filter(log => log.responseTime > threshold)
+      .filter((log) => log.responseTime > threshold)
       .slice(-limit);
   }
 
-  getRequestsByEndpoint(): { [endpoint: string]: { count: number; avgResponseTime: number } } {
+  getRequestsByEndpoint(): {
+    [endpoint: string]: { count: number; avgResponseTime: number };
+  } {
     const endpoints: { [key: string]: { times: number[]; count: number } } = {};
 
-    this.requestLogs.forEach(log => {
+    this.requestLogs.forEach((log) => {
       // Normalize URL by removing query params and IDs
       const normalizedUrl = log.url
         .replace(/\?.*$/, '') // Remove query params
@@ -187,22 +196,25 @@ class MonitoringService {
         .replace(/\/\d+/g, '/:id'); // Replace numeric IDs with :id
 
       const key = `${log.method} ${normalizedUrl}`;
-      
+
       if (!endpoints[key]) {
         endpoints[key] = { times: [], count: 0 };
       }
-      
+
       endpoints[key].times.push(log.responseTime);
       endpoints[key].count++;
     });
 
     // Calculate averages
-    const result: { [endpoint: string]: { count: number; avgResponseTime: number } } = {};
-    
+    const result: {
+      [endpoint: string]: { count: number; avgResponseTime: number };
+    } = {};
+
     Object.entries(endpoints).forEach(([endpoint, data]) => {
       result[endpoint] = {
         count: data.count,
-        avgResponseTime: data.times.reduce((sum, time) => sum + time, 0) / data.times.length,
+        avgResponseTime:
+          data.times.reduce((sum, time) => sum + time, 0) / data.times.length,
       };
     });
 
@@ -219,15 +231,28 @@ class MonitoringService {
       activeConnections: number;
     };
   } {
-    const memoryUsagePercent = (this.metrics.memoryUsage.heapUsed / this.metrics.memoryUsage.heapTotal) * 100;
-    const errorRate = this.metrics.requestCount > 0 ? (this.metrics.errorCount / this.metrics.requestCount) * 100 : 0;
+    const memoryUsagePercent =
+      (this.metrics.memoryUsage.heapUsed / this.metrics.memoryUsage.heapTotal) *
+      100;
+    const errorRate =
+      this.metrics.requestCount > 0
+        ? (this.metrics.errorCount / this.metrics.requestCount) * 100
+        : 0;
 
     let status: 'healthy' | 'warning' | 'critical' = 'healthy';
 
     // Determine status based on various metrics
-    if (memoryUsagePercent > 90 || errorRate > 10 || this.metrics.averageResponseTime > 5000) {
+    if (
+      memoryUsagePercent > 90 ||
+      errorRate > 10 ||
+      this.metrics.averageResponseTime > 5000
+    ) {
       status = 'critical';
-    } else if (memoryUsagePercent > 80 || errorRate > 5 || this.metrics.averageResponseTime > 2000) {
+    } else if (
+      memoryUsagePercent > 80 ||
+      errorRate > 5 ||
+      this.metrics.averageResponseTime > 2000
+    ) {
       status = 'warning';
     }
 
@@ -272,10 +297,16 @@ class MonitoringService {
     }
   }
 
-  trackBackgroundJob(jobName: string, duration: number, success: boolean): void {
+  trackBackgroundJob(
+    jobName: string,
+    duration: number,
+    success: boolean
+  ): void {
     const logLevel = success ? 'info' : 'error';
-    const message = `[JOB] ${jobName} - ${success ? 'SUCCESS' : 'FAILED'} (${duration}ms)`;
-    
+    const message = `[JOB] ${jobName} - ${
+      success ? 'SUCCESS' : 'FAILED'
+    } (${duration}ms)`;
+
     if (config.monitoring.logLevel === 'debug' || !success) {
       console[logLevel](message);
     }

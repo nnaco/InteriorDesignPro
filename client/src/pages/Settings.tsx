@@ -1,24 +1,24 @@
-import { useState, useEffect } from "react";
-import { MainLayout } from "@/components/layout/MainLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Switch } from "@/components/ui/switch";
-import { Separator } from "@/components/ui/separator";
-import { useAuth } from "@/hooks/useAuth";
-import { useToast } from "@/hooks/use-toast";
-import { User, Bell, Shield, Palette } from "lucide-react";
+import { useState, useEffect } from 'react';
+import { MainLayout } from '@/components/layout/MainLayout';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Switch } from '@/components/ui/switch';
+import { Separator } from '@/components/ui/separator';
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
+import { User, Bell, Shield, Palette } from 'lucide-react';
 
 export default function Settings() {
   const [profileData, setProfileData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
   });
-  
+
   const [notifications, setNotifications] = useState({
     emailNotifications: true,
     pushNotifications: true,
@@ -33,12 +33,12 @@ export default function Settings() {
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       toast({
-        title: "Unauthorized",
-        description: "You are logged out. Logging in again...",
-        variant: "destructive",
+        title: 'Unauthorized',
+        description: 'You are logged out. Logging in again...',
+        variant: 'destructive',
       });
       setTimeout(() => {
-        window.location.href = "/api/login";
+        window.location.href = '/api/login';
       }, 500);
       return;
     }
@@ -47,43 +47,50 @@ export default function Settings() {
   useEffect(() => {
     if (user) {
       setProfileData({
-        firstName: user.firstName || "",
-        lastName: user.lastName || "",
-        email: user.email || "",
-        phone: "", // Mock phone number
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        email: user.email || '',
+        phone: '', // Mock phone number
       });
     }
   }, [user]);
 
   const handleProfileSave = () => {
     toast({
-      title: "Success",
-      description: "Profile updated successfully",
+      title: 'Success',
+      description: 'Profile updated successfully',
     });
   };
 
   const handleLogout = () => {
-    window.location.href = "/api/logout";
+    window.location.href = '/api/logout';
   };
 
   if (isLoading || !isAuthenticated) {
-    return <MainLayout title="Settings"><div>Loading...</div></MainLayout>;
+    return (
+      <MainLayout title="Settings">
+        <div>Loading...</div>
+      </MainLayout>
+    );
   }
 
   const getInitials = (firstName?: string, lastName?: string) => {
-    return `${firstName?.[0] || ""}${lastName?.[0] || ""}`;
+    return `${firstName?.[0] || ''}${lastName?.[0] || ''}`;
   };
 
-  const displayName = profileData.firstName && profileData.lastName 
-    ? `${profileData.firstName} ${profileData.lastName}` 
-    : profileData.email || "User";
+  const displayName =
+    profileData.firstName && profileData.lastName
+      ? `${profileData.firstName} ${profileData.lastName}`
+      : profileData.email || 'User';
 
   return (
     <MainLayout title="Settings">
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-foreground">Account Settings</h2>
+          <h2 className="text-2xl font-bold text-foreground">
+            Account Settings
+          </h2>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -99,7 +106,10 @@ export default function Settings() {
               <CardContent className="space-y-6">
                 <div className="flex items-center space-x-4">
                   <Avatar className="w-16 h-16">
-                    <AvatarImage src={user?.profileImageUrl} alt={displayName} />
+                    <AvatarImage
+                      src={user?.profileImageUrl}
+                      alt={displayName}
+                    />
                     <AvatarFallback className="text-lg">
                       {getInitials(profileData.firstName, profileData.lastName)}
                     </AvatarFallback>
@@ -120,7 +130,12 @@ export default function Settings() {
                     <Input
                       id="firstName"
                       value={profileData.firstName}
-                      onChange={(e) => setProfileData(prev => ({ ...prev, firstName: e.target.value }))}
+                      onChange={(e) =>
+                        setProfileData((prev) => ({
+                          ...prev,
+                          firstName: e.target.value,
+                        }))
+                      }
                     />
                   </div>
                   <div className="space-y-2">
@@ -128,7 +143,12 @@ export default function Settings() {
                     <Input
                       id="lastName"
                       value={profileData.lastName}
-                      onChange={(e) => setProfileData(prev => ({ ...prev, lastName: e.target.value }))}
+                      onChange={(e) =>
+                        setProfileData((prev) => ({
+                          ...prev,
+                          lastName: e.target.value,
+                        }))
+                      }
                     />
                   </div>
                 </div>
@@ -139,7 +159,12 @@ export default function Settings() {
                     id="email"
                     type="email"
                     value={profileData.email}
-                    onChange={(e) => setProfileData(prev => ({ ...prev, email: e.target.value }))}
+                    onChange={(e) =>
+                      setProfileData((prev) => ({
+                        ...prev,
+                        email: e.target.value,
+                      }))
+                    }
                   />
                 </div>
 
@@ -149,14 +174,17 @@ export default function Settings() {
                     id="phone"
                     type="tel"
                     value={profileData.phone}
-                    onChange={(e) => setProfileData(prev => ({ ...prev, phone: e.target.value }))}
+                    onChange={(e) =>
+                      setProfileData((prev) => ({
+                        ...prev,
+                        phone: e.target.value,
+                      }))
+                    }
                     placeholder="(555) 123-4567"
                   />
                 </div>
 
-                <Button onClick={handleProfileSave}>
-                  Save Changes
-                </Button>
+                <Button onClick={handleProfileSave}>Save Changes</Button>
               </CardContent>
             </Card>
 
@@ -171,7 +199,9 @@ export default function Settings() {
               <CardContent className="space-y-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <Label htmlFor="emailNotifications">Email Notifications</Label>
+                    <Label htmlFor="emailNotifications">
+                      Email Notifications
+                    </Label>
                     <p className="text-sm text-muted-foreground">
                       Receive notifications via email
                     </p>
@@ -179,8 +209,11 @@ export default function Settings() {
                   <Switch
                     id="emailNotifications"
                     checked={notifications.emailNotifications}
-                    onCheckedChange={(checked) => 
-                      setNotifications(prev => ({ ...prev, emailNotifications: checked }))
+                    onCheckedChange={(checked) =>
+                      setNotifications((prev) => ({
+                        ...prev,
+                        emailNotifications: checked,
+                      }))
                     }
                   />
                 </div>
@@ -189,7 +222,9 @@ export default function Settings() {
 
                 <div className="flex items-center justify-between">
                   <div>
-                    <Label htmlFor="pushNotifications">Push Notifications</Label>
+                    <Label htmlFor="pushNotifications">
+                      Push Notifications
+                    </Label>
                     <p className="text-sm text-muted-foreground">
                       Receive push notifications in your browser
                     </p>
@@ -197,8 +232,11 @@ export default function Settings() {
                   <Switch
                     id="pushNotifications"
                     checked={notifications.pushNotifications}
-                    onCheckedChange={(checked) => 
-                      setNotifications(prev => ({ ...prev, pushNotifications: checked }))
+                    onCheckedChange={(checked) =>
+                      setNotifications((prev) => ({
+                        ...prev,
+                        pushNotifications: checked,
+                      }))
                     }
                   />
                 </div>
@@ -215,8 +253,11 @@ export default function Settings() {
                   <Switch
                     id="projectUpdates"
                     checked={notifications.projectUpdates}
-                    onCheckedChange={(checked) => 
-                      setNotifications(prev => ({ ...prev, projectUpdates: checked }))
+                    onCheckedChange={(checked) =>
+                      setNotifications((prev) => ({
+                        ...prev,
+                        projectUpdates: checked,
+                      }))
                     }
                   />
                 </div>
@@ -233,8 +274,11 @@ export default function Settings() {
                   <Switch
                     id="taskReminders"
                     checked={notifications.taskReminders}
-                    onCheckedChange={(checked) => 
-                      setNotifications(prev => ({ ...prev, taskReminders: checked }))
+                    onCheckedChange={(checked) =>
+                      setNotifications((prev) => ({
+                        ...prev,
+                        taskReminders: checked,
+                      }))
                     }
                   />
                 </div>
@@ -251,8 +295,11 @@ export default function Settings() {
                   <Switch
                     id="teamMessages"
                     checked={notifications.teamMessages}
-                    onCheckedChange={(checked) => 
-                      setNotifications(prev => ({ ...prev, teamMessages: checked }))
+                    onCheckedChange={(checked) =>
+                      setNotifications((prev) => ({
+                        ...prev,
+                        teamMessages: checked,
+                      }))
                     }
                   />
                 </div>
@@ -301,8 +348,8 @@ export default function Settings() {
 
             <Card className="material-shadow">
               <CardContent className="pt-6">
-                <Button 
-                  variant="destructive" 
+                <Button
+                  variant="destructive"
                   className="w-full"
                   onClick={handleLogout}
                 >

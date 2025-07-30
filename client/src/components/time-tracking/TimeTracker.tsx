@@ -1,13 +1,19 @@
-import { useState, useEffect } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
-import { Play, Pause, Square, Clock, Calendar } from "lucide-react";
-import { format, formatDuration, intervalToDuration } from "date-fns";
+import { useState, useEffect } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
+import { Play, Pause, Square, Clock, Calendar } from 'lucide-react';
+import { format, formatDuration, intervalToDuration } from 'date-fns';
 
 interface TimeEntry {
   id: string;
@@ -30,7 +36,7 @@ interface TimeTrackerProps {
 export function TimeTracker({ taskId, projectId }: TimeTrackerProps) {
   const [currentEntry, setCurrentEntry] = useState<TimeEntry | null>(null);
   const [elapsedTime, setElapsedTime] = useState(0);
-  const [selectedTask, setSelectedTask] = useState(taskId || "");
+  const [selectedTask, setSelectedTask] = useState(taskId || '');
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -57,15 +63,15 @@ export function TimeTracker({ taskId, projectId }: TimeTrackerProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/time-tracking'] });
       toast({
-        title: "Timer Started",
-        description: "Time tracking has been started for this task.",
+        title: 'Timer Started',
+        description: 'Time tracking has been started for this task.',
       });
     },
     onError: () => {
       toast({
-        title: "Error",
-        description: "Failed to start timer. Please try again.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to start timer. Please try again.',
+        variant: 'destructive',
       });
     },
   });
@@ -82,8 +88,8 @@ export function TimeTracker({ taskId, projectId }: TimeTrackerProps) {
       setCurrentEntry(null);
       setElapsedTime(0);
       toast({
-        title: "Timer Stopped",
-        description: "Time entry has been saved successfully.",
+        title: 'Timer Stopped',
+        description: 'Time entry has been saved successfully.',
       });
     },
   });
@@ -96,10 +102,13 @@ export function TimeTracker({ taskId, projectId }: TimeTrackerProps) {
       const updateElapsed = () => {
         const now = new Date();
         const duration = intervalToDuration({ start: startTime, end: now });
-        const totalSeconds = (duration.hours || 0) * 3600 + (duration.minutes || 0) * 60 + (duration.seconds || 0);
+        const totalSeconds =
+          (duration.hours || 0) * 3600 +
+          (duration.minutes || 0) * 60 +
+          (duration.seconds || 0);
         setElapsedTime(totalSeconds);
       };
-      
+
       updateElapsed();
       const interval = setInterval(updateElapsed, 1000);
       return () => clearInterval(interval);
@@ -113,22 +122,24 @@ export function TimeTracker({ taskId, projectId }: TimeTrackerProps) {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     const secs = seconds % 60;
-    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    return `${hours.toString().padStart(2, '0')}:${minutes
+      .toString()
+      .padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
   const handleStart = () => {
     if (!selectedTask && !taskId) {
       toast({
-        title: "No Task Selected",
-        description: "Please select a task to track time for.",
-        variant: "destructive",
+        title: 'No Task Selected',
+        description: 'Please select a task to track time for.',
+        variant: 'destructive',
       });
       return;
     }
-    
+
     startTimer.mutate({
       taskId: selectedTask || taskId!,
-      description: "",
+      description: '',
     });
   };
 
@@ -171,7 +182,7 @@ export function TimeTracker({ taskId, projectId }: TimeTrackerProps) {
           <div className="text-4xl font-mono font-bold text-primary">
             {formatTime(elapsedTime)}
           </div>
-          
+
           {currentEntry && (
             <div className="space-y-2">
               <Badge variant="secondary" className="text-sm">
@@ -238,17 +249,19 @@ function TimeEntryList({ taskId, projectId }: TimeEntryListProps) {
       <h4 className="font-medium text-sm">Recent Entries</h4>
       <div className="space-y-2 max-h-60 overflow-y-auto">
         {entries.slice(0, 5).map((entry) => (
-          <div key={entry.id} className="flex items-center justify-between p-2 bg-gray-50 rounded text-sm">
+          <div
+            key={entry.id}
+            className="flex items-center justify-between p-2 bg-gray-50 rounded text-sm"
+          >
             <div>
               <div className="font-medium">{entry.taskTitle}</div>
               <div className="text-gray-500">
                 {format(new Date(entry.startTime), 'MMM d, HH:mm')}
-                {entry.endTime && ` - ${format(new Date(entry.endTime), 'HH:mm')}`}
+                {entry.endTime &&
+                  ` - ${format(new Date(entry.endTime), 'HH:mm')}`}
               </div>
             </div>
-            <Badge variant="outline">
-              {formatTime(entry.duration)}
-            </Badge>
+            <Badge variant="outline">{formatTime(entry.duration)}</Badge>
           </div>
         ))}
       </div>

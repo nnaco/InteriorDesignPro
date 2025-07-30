@@ -1,9 +1,9 @@
-import { useQuery } from "@tanstack/react-query";
-import { format, parseISO, differenceInDays, addDays } from "date-fns";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Calendar, Clock, Users } from "lucide-react";
+import { useQuery } from '@tanstack/react-query';
+import { format, parseISO, differenceInDays, addDays } from 'date-fns';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Calendar, Clock, Users } from 'lucide-react';
 
 interface GanttTask {
   id: string;
@@ -66,12 +66,12 @@ export function GanttChart({ projectId }: GanttChartProps) {
   }
 
   // Calculate timeline bounds
-  const allDates = tasks.flatMap(task => [
+  const allDates = tasks.flatMap((task) => [
     parseISO(task.startDate),
-    parseISO(task.dueDate)
+    parseISO(task.dueDate),
   ]);
-  const minDate = new Date(Math.min(...allDates.map(d => d.getTime())));
-  const maxDate = new Date(Math.max(...allDates.map(d => d.getTime())));
+  const minDate = new Date(Math.min(...allDates.map((d) => d.getTime())));
+  const maxDate = new Date(Math.max(...allDates.map((d) => d.getTime())));
   const totalDays = differenceInDays(maxDate, minDate) + 1;
 
   // Generate timeline headers
@@ -82,25 +82,33 @@ export function GanttChart({ projectId }: GanttChartProps) {
       date,
       dayOfMonth: format(date, 'd'),
       month: format(date, 'MMM'),
-      isFirstOfMonth: date.getDate() === 1
+      isFirstOfMonth: date.getDate() === 1,
     });
   }
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'done': return 'bg-green-500';
-      case 'in_progress': return 'bg-blue-500';
-      case 'review': return 'bg-yellow-500';
-      default: return 'bg-gray-300';
+      case 'done':
+        return 'bg-green-500';
+      case 'in_progress':
+        return 'bg-blue-500';
+      case 'review':
+        return 'bg-yellow-500';
+      default:
+        return 'bg-gray-300';
     }
   };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'high': return 'border-red-500';
-      case 'medium': return 'border-yellow-500';
-      case 'low': return 'border-green-500';
-      default: return 'border-gray-300';
+      case 'high':
+        return 'border-red-500';
+      case 'medium':
+        return 'border-yellow-500';
+      case 'low':
+        return 'border-green-500';
+      default:
+        return 'border-gray-300';
     }
   };
 
@@ -109,10 +117,10 @@ export function GanttChart({ projectId }: GanttChartProps) {
     const endDate = parseISO(task.dueDate);
     const startOffset = differenceInDays(startDate, minDate);
     const duration = differenceInDays(endDate, startDate) + 1;
-    
+
     return {
       left: `${(startOffset / totalDays) * 100}%`,
-      width: `${(duration / totalDays) * 100}%`
+      width: `${(duration / totalDays) * 100}%`,
     };
   };
 
@@ -157,7 +165,9 @@ export function GanttChart({ projectId }: GanttChartProps) {
                 <div key={task.id} className="flex items-center h-12">
                   {/* Task Info */}
                   <div className="w-48 flex-shrink-0 pr-4">
-                    <div className="text-sm font-medium truncate">{task.title}</div>
+                    <div className="text-sm font-medium truncate">
+                      {task.title}
+                    </div>
                     <div className="flex items-center gap-2 text-xs text-gray-500">
                       <Badge
                         variant="outline"
@@ -177,7 +187,9 @@ export function GanttChart({ projectId }: GanttChartProps) {
                   {/* Timeline Bar */}
                   <div className="flex-1 relative h-6">
                     <div
-                      className={`absolute h-6 rounded ${getStatusColor(task.status)} opacity-80 flex items-center px-2`}
+                      className={`absolute h-6 rounded ${getStatusColor(
+                        task.status
+                      )} opacity-80 flex items-center px-2`}
                       style={position}
                     >
                       {/* Progress overlay */}
@@ -185,7 +197,7 @@ export function GanttChart({ projectId }: GanttChartProps) {
                         className="absolute left-0 top-0 h-full bg-white bg-opacity-30 rounded"
                         style={{ width: `${task.progress}%` }}
                       ></div>
-                      
+
                       <span className="text-white text-xs font-medium truncate relative z-10">
                         {task.progress}%
                       </span>

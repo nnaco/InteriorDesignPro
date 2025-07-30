@@ -61,17 +61,6 @@ function updateUserSession(
   user.expires_at = user.claims?.exp;
 }
 
-async function upsertUser(claims: any) {
-  console.log('claims', claims);
-  await storage.upsertUser({
-    id: claims['sub'],
-    email: claims['email'],
-    firstName: claims['given_name'],
-    lastName: claims['family_name'],
-    profileImageUrl: claims['picture'],
-  });
-}
-
 export async function setupAuth(app: Express) {
   app.set('trust proxy', 1);
   app.use(getSession());
@@ -84,10 +73,23 @@ export async function setupAuth(app: Express) {
     tokens: client.TokenEndpointResponse & client.TokenEndpointResponseHelpers,
     verified: passport.AuthenticateCallback
   ) => {
-    const user = {};
-    updateUserSession(user, tokens);
-    await upsertUser(tokens.claims());
-    verified(null, user);
+    const claims = tokens.claims();
+    const userRecord = claims?.email
+      ? await storage.getUserByEmail(claims.email.toString().toLowerCase())
+      : undefined;
+    if (userRecord) {
+      const user = { sub: userRecord.id };
+      if (!userRecord.hasJoined) {
+        await storage.updateUserOnRegistration(userRecord.id, {
+          profileImageUrl: claims?.picture?.toString(),
+          sub: claims?.sub,
+        });
+      }
+      updateUserSession(user, tokens);
+      verified(null, user);
+    } else {
+      verified('Invalid User', null);
+    }
   };
 
   // Configure Google OAuth strategy for each domain

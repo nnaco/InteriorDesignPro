@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
-import { MainLayout } from "@/components/layout/MainLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+import { useState, useEffect } from 'react';
+import { MainLayout } from '@/components/layout/MainLayout';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 import {
   Table,
   TableBody,
@@ -11,72 +11,76 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from '@/components/ui/table';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/select';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useAuth } from "@/hooks/useAuth";
-import { useToast } from "@/hooks/use-toast";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
-import { isUnauthorizedError } from "@/lib/authUtils";
-import { UserPlus, Search, MoreHorizontal, Shield } from "lucide-react";
-import { format } from "date-fns";
+} from '@/components/ui/dropdown-menu';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
+import { isUnauthorizedError } from '@/lib/authUtils';
+import { UserPlus, Search, MoreHorizontal, Shield } from 'lucide-react';
+import { format } from 'date-fns';
 
 export default function Admin() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [roleFilter, setRoleFilter] = useState("all");
-  
-  const { user, toast } = useToast();
-  const { isAuthenticated, isLoading } = useAuth();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [roleFilter, setRoleFilter] = useState('all');
+
+  const { toast } = useToast();
+  const { isAuthenticated, isLoading, user } = useAuth();
   const queryClient = useQueryClient();
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       toast({
-        title: "Unauthorized",
-        description: "You are logged out. Logging in again...",
-        variant: "destructive",
+        title: 'Unauthorized',
+        description: 'You are logged out. Logging in again...',
+        variant: 'destructive',
       });
       setTimeout(() => {
-        window.location.href = "/api/login";
+        window.location.href = '/api/login';
       }, 500);
       return;
     }
-
     // Check if user has admin/manager permissions
-    if (!isLoading && isAuthenticated && user?.role !== "admin" && user?.role !== "manager") {
+    if (
+      !isLoading &&
+      isAuthenticated &&
+      user?.role !== 'admin' &&
+      user?.role !== 'manager'
+    ) {
       toast({
-        title: "Access Denied",
+        title: 'Access Denied',
         description: "You don't have permission to access this page",
-        variant: "destructive",
+        variant: 'destructive',
       });
       return;
     }
   }, [isAuthenticated, isLoading, user, toast]);
 
   const { data: users = [], isLoading: usersLoading } = useQuery({
-    queryKey: ["/api/users"],
+    queryKey: ['/api/users'],
     onError: (error) => {
       if (isUnauthorizedError(error)) {
         toast({
-          title: "Unauthorized",
-          description: "You are logged out. Logging in again...",
-          variant: "destructive",
+          title: 'Unauthorized',
+          description: 'You are logged out. Logging in again...',
+          variant: 'destructive',
         });
         setTimeout(() => {
-          window.location.href = "/api/login";
+          window.location.href = '/api/login';
         }, 500);
         return;
       }
@@ -85,98 +89,105 @@ export default function Admin() {
 
   const updateRoleMutation = useMutation({
     mutationFn: async ({ userId, role }: { userId: string; role: string }) => {
-      await apiRequest("PUT", `/api/users/${userId}/role`, { role });
+      await apiRequest('PUT', `/api/users/${userId}/role`, { role });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
       toast({
-        title: "Success",
-        description: "User role updated successfully",
+        title: 'Success',
+        description: 'User role updated successfully',
       });
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {
         toast({
-          title: "Unauthorized",
-          description: "You are logged out. Logging in again...",
-          variant: "destructive",
+          title: 'Unauthorized',
+          description: 'You are logged out. Logging in again...',
+          variant: 'destructive',
         });
         setTimeout(() => {
-          window.location.href = "/api/login";
+          window.location.href = '/api/login';
         }, 500);
         return;
       }
-      console.error("Error updating user role:", error);
+      console.error('Error updating user role:', error);
       toast({
-        title: "Error",
-        description: "Failed to update user role",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to update user role',
+        variant: 'destructive',
       });
     },
   });
 
   // Filter users
   const filteredUsers = users.filter((u: any) => {
-    const fullName = `${u.firstName || ""} ${u.lastName || ""}`.toLowerCase();
-    const matchesSearch = fullName.includes(searchQuery.toLowerCase()) ||
+    const fullName = `${u.firstName || ''} ${u.lastName || ''}`.toLowerCase();
+    const matchesSearch =
+      fullName.includes(searchQuery.toLowerCase()) ||
       u.email?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesRole = roleFilter === "all" || u.role === roleFilter;
-    
+    const matchesRole = roleFilter === 'all' || u.role === roleFilter;
+
     return matchesSearch && matchesRole;
   });
 
   const getRoleColor = (role: string) => {
     switch (role) {
-      case "admin":
-        return "bg-red-100 text-red-800";
-      case "manager":
-        return "bg-purple-100 text-purple-800";
-      case "designer":
-        return "bg-blue-100 text-blue-800";
-      case "contractor":
-        return "bg-orange-100 text-orange-800";
-      case "client":
-        return "bg-green-100 text-green-800";
+      case 'admin':
+        return 'bg-red-100 text-red-800';
+      case 'manager':
+        return 'bg-purple-100 text-purple-800';
+      case 'designer':
+        return 'bg-blue-100 text-blue-800';
+      case 'contractor':
+        return 'bg-orange-100 text-orange-800';
+      case 'client':
+        return 'bg-green-100 text-green-800';
       default:
-        return "bg-gray-100 text-gray-800";
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
   const getRoleDisplay = (role: string) => {
     switch (role) {
-      case "admin":
-        return "Administrator";
-      case "manager":
-        return "Design Manager";
-      case "designer":
-        return "Interior Designer";
-      case "contractor":
-        return "Contractor";
-      case "client":
-        return "Client";
+      case 'admin':
+        return 'Administrator';
+      case 'manager':
+        return 'Design Manager';
+      case 'designer':
+        return 'Interior Designer';
+      case 'contractor':
+        return 'Contractor';
+      case 'client':
+        return 'Client';
       default:
-        return "Team Member";
+        return 'Team Member';
     }
   };
 
   const getInitials = (firstName?: string, lastName?: string) => {
-    return `${firstName?.[0] || ""}${lastName?.[0] || ""}`;
+    return `${firstName?.[0] || ''}${lastName?.[0] || ''}`;
   };
 
   const getDisplayName = (firstName?: string, lastName?: string) => {
-    return `${firstName || ""} ${lastName || ""}`.trim() || "Unknown User";
+    return `${firstName || ''} ${lastName || ''}`.trim() || 'Unknown User';
   };
 
   if (isLoading || !isAuthenticated || usersLoading) {
-    return <MainLayout title="Admin Panel"><div>Loading...</div></MainLayout>;
+    return (
+      <MainLayout title="Admin Panel">
+        <div>Loading...</div>
+      </MainLayout>
+    );
   }
 
-  if (user?.role !== "admin" && user?.role !== "manager") {
+  if (user?.role !== 'admin' && user?.role !== 'manager') {
     return (
       <MainLayout title="Admin Panel">
         <div className="text-center py-12">
           <Shield className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-          <h3 className="text-lg font-semibold text-foreground mb-2">Access Denied</h3>
+          <h3 className="text-lg font-semibold text-foreground mb-2">
+            Access Denied
+          </h3>
           <p className="text-muted-foreground">
             You don't have permission to access this page
           </p>
@@ -190,7 +201,9 @@ export default function Admin() {
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-foreground">User Management</h2>
+          <h2 className="text-2xl font-bold text-foreground">
+            User Management
+          </h2>
           <Button>
             <UserPlus className="h-4 w-4 mr-2" />
             Add User
@@ -216,7 +229,7 @@ export default function Admin() {
                     <SelectItem value="client">Client</SelectItem>
                   </SelectContent>
                 </Select>
-                
+
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                   <Input
@@ -254,7 +267,10 @@ export default function Admin() {
                       <TableCell>
                         <div className="flex items-center space-x-3">
                           <Avatar className="w-8 h-8">
-                            <AvatarImage src={u.profileImageUrl} alt={getDisplayName(u.firstName, u.lastName)} />
+                            <AvatarImage
+                              src={u.profileImageUrl}
+                              alt={getDisplayName(u.firstName, u.lastName)}
+                            />
                             <AvatarFallback className="text-xs">
                               {getInitials(u.firstName, u.lastName)}
                             </AvatarFallback>
@@ -273,7 +289,9 @@ export default function Admin() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        {u.createdAt ? format(new Date(u.createdAt), "MMM d, yyyy") : "-"}
+                        {u.createdAt
+                          ? format(new Date(u.createdAt), 'MMM d, yyyy')
+                          : '-'}
                       </TableCell>
                       <TableCell>
                         <DropdownMenu>
@@ -284,32 +302,57 @@ export default function Admin() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem
-                              onClick={() => updateRoleMutation.mutate({ userId: u.id, role: "admin" })}
-                              disabled={u.role === "admin"}
+                              onClick={() =>
+                                updateRoleMutation.mutate({
+                                  userId: u.id,
+                                  role: 'admin',
+                                })
+                              }
+                              disabled={u.role === 'admin'}
                             >
                               Make Administrator
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                              onClick={() => updateRoleMutation.mutate({ userId: u.id, role: "manager" })}
-                              disabled={u.role === "manager"}
+                              onClick={() =>
+                                updateRoleMutation.mutate({
+                                  userId: u.id,
+                                  role: 'manager',
+                                })
+                              }
+                              disabled={u.role === 'manager'}
                             >
                               Make Manager
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                              onClick={() => updateRoleMutation.mutate({ userId: u.id, role: "designer" })}
-                              disabled={u.role === "designer"}
+                              onClick={() =>
+                                updateRoleMutation.mutate({
+                                  userId: u.id,
+                                  role: 'designer',
+                                })
+                              }
+                              disabled={u.role === 'designer'}
                             >
                               Make Designer
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                              onClick={() => updateRoleMutation.mutate({ userId: u.id, role: "contractor" })}
-                              disabled={u.role === "contractor"}
+                              onClick={() =>
+                                updateRoleMutation.mutate({
+                                  userId: u.id,
+                                  role: 'contractor',
+                                })
+                              }
+                              disabled={u.role === 'contractor'}
                             >
                               Make Contractor
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                              onClick={() => updateRoleMutation.mutate({ userId: u.id, role: "client" })}
-                              disabled={u.role === "client"}
+                              onClick={() =>
+                                updateRoleMutation.mutate({
+                                  userId: u.id,
+                                  role: 'client',
+                                })
+                              }
+                              disabled={u.role === 'client'}
                             >
                               Make Client
                             </DropdownMenuItem>

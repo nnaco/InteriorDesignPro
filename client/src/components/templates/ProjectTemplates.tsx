@@ -1,16 +1,37 @@
-import { useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { useToast } from "@/hooks/use-toast";
-import { Layout, Copy, Plus, Eye, Trash2, Home, Building, Palette } from "lucide-react";
+import { useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
+import {
+  Layout,
+  Copy,
+  Plus,
+  Eye,
+  Trash2,
+  Home,
+  Building,
+  Palette,
+} from 'lucide-react';
 
 interface ProjectTemplate {
   id: string;
@@ -45,7 +66,8 @@ interface TemplateMilestone {
 
 export function ProjectTemplates() {
   const [isCreating, setIsCreating] = useState(false);
-  const [selectedTemplate, setSelectedTemplate] = useState<ProjectTemplate | null>(null);
+  const [selectedTemplate, setSelectedTemplate] =
+    useState<ProjectTemplate | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -56,7 +78,12 @@ export function ProjectTemplates() {
 
   // Create project from template
   const createFromTemplate = useMutation({
-    mutationFn: async (data: { templateId: string; projectName: string; clientId: string; startDate: string }) => {
+    mutationFn: async (data: {
+      templateId: string;
+      projectName: string;
+      clientId: string;
+      startDate: string;
+    }) => {
       return apiRequest('/api/projects/from-template', {
         method: 'POST',
         body: data,
@@ -64,16 +91,16 @@ export function ProjectTemplates() {
     },
     onSuccess: () => {
       toast({
-        title: "Project Created",
-        description: "Project has been created from template successfully.",
+        title: 'Project Created',
+        description: 'Project has been created from template successfully.',
       });
       queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
     },
     onError: () => {
       toast({
-        title: "Error",
-        description: "Failed to create project from template.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to create project from template.',
+        variant: 'destructive',
       });
     },
   });
@@ -106,10 +133,7 @@ export function ProjectTemplates() {
       </div>
 
       {/* Create Template Dialog */}
-      <CreateTemplateDialog
-        open={isCreating}
-        onOpenChange={setIsCreating}
-      />
+      <CreateTemplateDialog open={isCreating} onOpenChange={setIsCreating} />
 
       {/* Use Template Dialog */}
       <UseTemplateDialog
@@ -130,19 +154,27 @@ interface TemplateCardProps {
 function TemplateCard({ template, onUse }: TemplateCardProps) {
   const getCategoryIcon = (category: string) => {
     switch (category) {
-      case 'residential': return <Home className="h-5 w-5" />;
-      case 'commercial': return <Building className="h-5 w-5" />;
-      case 'renovation': return <Palette className="h-5 w-5" />;
-      default: return <Layout className="h-5 w-5" />;
+      case 'residential':
+        return <Home className="h-5 w-5" />;
+      case 'commercial':
+        return <Building className="h-5 w-5" />;
+      case 'renovation':
+        return <Palette className="h-5 w-5" />;
+      default:
+        return <Layout className="h-5 w-5" />;
     }
   };
 
   const getCategoryColor = (category: string) => {
     switch (category) {
-      case 'residential': return 'bg-blue-100 text-blue-800';
-      case 'commercial': return 'bg-green-100 text-green-800';
-      case 'renovation': return 'bg-purple-100 text-purple-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'residential':
+        return 'bg-blue-100 text-blue-800';
+      case 'commercial':
+        return 'bg-green-100 text-green-800';
+      case 'renovation':
+        return 'bg-purple-100 text-purple-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -171,7 +203,9 @@ function TemplateCard({ template, onUse }: TemplateCardProps) {
           </div>
           <div>
             <p className="text-gray-500">Budget</p>
-            <p className="font-medium">${template.estimatedBudget.toLocaleString()}</p>
+            <p className="font-medium">
+              ${template.estimatedBudget.toLocaleString()}
+            </p>
           </div>
         </div>
 
@@ -188,10 +222,7 @@ function TemplateCard({ template, onUse }: TemplateCardProps) {
 
         {/* Actions */}
         <div className="flex gap-2 pt-2">
-          <Button 
-            className="flex-1"
-            onClick={() => onUse(template)}
-          >
+          <Button className="flex-1" onClick={() => onUse(template)}>
             <Copy className="h-4 w-4 mr-2" />
             Use Template
           </Button>
@@ -216,16 +247,21 @@ interface CreateTemplateDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-function CreateTemplateDialog({ open, onOpenChange }: CreateTemplateDialogProps) {
+function CreateTemplateDialog({
+  open,
+  onOpenChange,
+}: CreateTemplateDialogProps) {
   const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-    category: "",
+    name: '',
+    description: '',
+    category: '',
     estimatedDuration: 0,
     estimatedBudget: 0,
   });
   const [tasks, setTasks] = useState<Omit<TemplateTask, 'id'>[]>([]);
-  const [milestones, setMilestones] = useState<Omit<TemplateMilestone, 'id'>[]>([]);
+  const [milestones, setMilestones] = useState<Omit<TemplateMilestone, 'id'>[]>(
+    []
+  );
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -238,8 +274,8 @@ function CreateTemplateDialog({ open, onOpenChange }: CreateTemplateDialogProps)
     },
     onSuccess: () => {
       toast({
-        title: "Template Created",
-        description: "Project template has been created successfully.",
+        title: 'Template Created',
+        description: 'Project template has been created successfully.',
       });
       queryClient.invalidateQueries({ queryKey: ['/api/project-templates'] });
       onOpenChange(false);
@@ -247,18 +283,18 @@ function CreateTemplateDialog({ open, onOpenChange }: CreateTemplateDialogProps)
     },
     onError: () => {
       toast({
-        title: "Error",
-        description: "Failed to create template. Please try again.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to create template. Please try again.',
+        variant: 'destructive',
       });
     },
   });
 
   const resetForm = () => {
     setFormData({
-      name: "",
-      description: "",
-      category: "",
+      name: '',
+      description: '',
+      category: '',
       estimatedDuration: 0,
       estimatedBudget: 0,
     });
@@ -288,7 +324,9 @@ function CreateTemplateDialog({ open, onOpenChange }: CreateTemplateDialogProps)
               <Label>Template Name</Label>
               <Input
                 value={formData.name}
-                onChange={(e) => setFormData({...formData, name: e.target.value})}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
                 required
               />
             </div>
@@ -297,7 +335,9 @@ function CreateTemplateDialog({ open, onOpenChange }: CreateTemplateDialogProps)
               <Label>Description</Label>
               <Textarea
                 value={formData.description}
-                onChange={(e) => setFormData({...formData, description: e.target.value})}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
                 required
               />
             </div>
@@ -307,7 +347,9 @@ function CreateTemplateDialog({ open, onOpenChange }: CreateTemplateDialogProps)
                 <Label>Category</Label>
                 <Select
                   value={formData.category}
-                  onValueChange={(value) => setFormData({...formData, category: value})}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, category: value })
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select category" />
@@ -326,7 +368,12 @@ function CreateTemplateDialog({ open, onOpenChange }: CreateTemplateDialogProps)
                 <Input
                   type="number"
                   value={formData.estimatedDuration}
-                  onChange={(e) => setFormData({...formData, estimatedDuration: parseInt(e.target.value) || 0})}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      estimatedDuration: parseInt(e.target.value) || 0,
+                    })
+                  }
                   required
                 />
               </div>
@@ -336,7 +383,12 @@ function CreateTemplateDialog({ open, onOpenChange }: CreateTemplateDialogProps)
                 <Input
                   type="number"
                   value={formData.estimatedBudget}
-                  onChange={(e) => setFormData({...formData, estimatedBudget: parseInt(e.target.value) || 0})}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      estimatedBudget: parseInt(e.target.value) || 0,
+                    })
+                  }
                   required
                 />
               </div>
@@ -348,7 +400,11 @@ function CreateTemplateDialog({ open, onOpenChange }: CreateTemplateDialogProps)
             <Button type="submit" disabled={createTemplate.isPending}>
               Create Template
             </Button>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+            >
               Cancel
             </Button>
           </div>
@@ -365,11 +421,16 @@ interface UseTemplateDialogProps {
   isCreating: boolean;
 }
 
-function UseTemplateDialog({ template, onClose, onCreateProject, isCreating }: UseTemplateDialogProps) {
+function UseTemplateDialog({
+  template,
+  onClose,
+  onCreateProject,
+  isCreating,
+}: UseTemplateDialogProps) {
   const [projectData, setProjectData] = useState({
-    projectName: "",
-    clientId: "",
-    startDate: "",
+    projectName: '',
+    clientId: '',
+    startDate: '',
   });
 
   const { data: clients = [] } = useQuery({
@@ -402,7 +463,9 @@ function UseTemplateDialog({ template, onClose, onCreateProject, isCreating }: U
             <Label>Project Name</Label>
             <Input
               value={projectData.projectName}
-              onChange={(e) => setProjectData({...projectData, projectName: e.target.value})}
+              onChange={(e) =>
+                setProjectData({ ...projectData, projectName: e.target.value })
+              }
               required
             />
           </div>
@@ -411,7 +474,9 @@ function UseTemplateDialog({ template, onClose, onCreateProject, isCreating }: U
             <Label>Client</Label>
             <Select
               value={projectData.clientId}
-              onValueChange={(value) => setProjectData({...projectData, clientId: value})}
+              onValueChange={(value) =>
+                setProjectData({ ...projectData, clientId: value })
+              }
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select client" />
@@ -431,7 +496,9 @@ function UseTemplateDialog({ template, onClose, onCreateProject, isCreating }: U
             <Input
               type="date"
               value={projectData.startDate}
-              onChange={(e) => setProjectData({...projectData, startDate: e.target.value})}
+              onChange={(e) =>
+                setProjectData({ ...projectData, startDate: e.target.value })
+              }
               required
             />
           </div>
@@ -460,10 +527,10 @@ function TemplatePreview({ template }: TemplatePreviewProps) {
       <DialogHeader>
         <DialogTitle>{template.name}</DialogTitle>
       </DialogHeader>
-      
+
       <div className="space-y-4">
         <p className="text-gray-600">{template.description}</p>
-        
+
         <div className="grid grid-cols-2 gap-4">
           <div>
             <h4 className="font-medium">Duration</h4>
@@ -477,12 +544,16 @@ function TemplatePreview({ template }: TemplatePreviewProps) {
 
         {template.tasks.length > 0 && (
           <div>
-            <h4 className="font-medium mb-2">Tasks ({template.tasks.length})</h4>
+            <h4 className="font-medium mb-2">
+              Tasks ({template.tasks.length})
+            </h4>
             <div className="space-y-2 max-h-40 overflow-y-auto">
               {template.tasks.map((task, index) => (
                 <div key={index} className="text-sm p-2 bg-gray-50 rounded">
                   <div className="font-medium">{task.title}</div>
-                  <div className="text-gray-600">{task.estimatedHours}h • {task.priority} priority</div>
+                  <div className="text-gray-600">
+                    {task.estimatedHours}h • {task.priority} priority
+                  </div>
                 </div>
               ))}
             </div>
@@ -491,12 +562,16 @@ function TemplatePreview({ template }: TemplatePreviewProps) {
 
         {template.milestones.length > 0 && (
           <div>
-            <h4 className="font-medium mb-2">Milestones ({template.milestones.length})</h4>
+            <h4 className="font-medium mb-2">
+              Milestones ({template.milestones.length})
+            </h4>
             <div className="space-y-2 max-h-40 overflow-y-auto">
               {template.milestones.map((milestone, index) => (
                 <div key={index} className="text-sm p-2 bg-gray-50 rounded">
                   <div className="font-medium">{milestone.title}</div>
-                  <div className="text-gray-600">Day {milestone.daysFromStart}</div>
+                  <div className="text-gray-600">
+                    Day {milestone.daysFromStart}
+                  </div>
                 </div>
               ))}
             </div>

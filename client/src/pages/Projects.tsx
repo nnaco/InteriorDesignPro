@@ -1,25 +1,44 @@
-import { useState, useEffect } from "react";
-import { useParams } from "wouter";
-import { MainLayout } from "@/components/layout/MainLayout";
-import { ProjectCard } from "@/components/projects/ProjectCard";
-import { ProjectFilters } from "@/components/projects/ProjectFilters";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useAuth } from "@/hooks/useAuth";
-import { useToast } from "@/hooks/use-toast";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
-import { isUnauthorizedError } from "@/lib/authUtils";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { insertProjectSchema } from "@shared/schema";
-import { z } from "zod";
-import { Plus } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
+import { useState, useEffect } from 'react';
+import { useParams } from 'wouter';
+import { MainLayout } from '@/components/layout/MainLayout';
+import { ProjectCard } from '@/components/projects/ProjectCard';
+import { ProjectFilters } from '@/components/projects/ProjectFilters';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
+import { isUnauthorizedError } from '@/lib/authUtils';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { insertProjectSchema } from '@shared/schema';
+import { z } from 'zod';
+import { Plus } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const projectFormSchema = insertProjectSchema.extend({
   startDate: z.string().optional(),
@@ -30,11 +49,11 @@ type ProjectFormData = z.infer<typeof projectFormSchema>;
 
 export default function Projects() {
   const { id: projectId } = useParams();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [clientFilter, setClientFilter] = useState("all");
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [clientFilter, setClientFilter] = useState('all');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  
+
   const { toast } = useToast();
   const { isAuthenticated, isLoading } = useAuth();
   const queryClient = useQueryClient();
@@ -42,64 +61,66 @@ export default function Projects() {
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       toast({
-        title: "Unauthorized",
-        description: "You are logged out. Logging in again...",
-        variant: "destructive",
+        title: 'Unauthorized',
+        description: 'You are logged out. Logging in again...',
+        variant: 'destructive',
       });
       setTimeout(() => {
-        window.location.href = "/api/login";
+        window.location.href = '/api/login';
       }, 500);
       return;
     }
   }, [isAuthenticated, isLoading, toast]);
 
   const { data: projects = [], isLoading: projectsLoading } = useQuery({
-    queryKey: ["/api/projects"],
+    queryKey: ['/api/projects'],
     onError: (error) => {
       if (isUnauthorizedError(error)) {
         toast({
-          title: "Unauthorized",
-          description: "You are logged out. Logging in again...",
-          variant: "destructive",
+          title: 'Unauthorized',
+          description: 'You are logged out. Logging in again...',
+          variant: 'destructive',
         });
         setTimeout(() => {
-          window.location.href = "/api/login";
+          window.location.href = '/api/login';
         }, 500);
         return;
       }
     },
   });
 
+  console.log('Projects data:', projects);
+
   const createProjectMutation = useMutation({
     mutationFn: async (data: ProjectFormData) => {
-      await apiRequest("POST", "/api/projects", data);
+      await apiRequest('POST', '/api/projects', data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
       setIsCreateDialogOpen(false);
       form.reset();
       toast({
-        title: "Success",
-        description: "Project created successfully",
+        title: 'Success',
+        description: 'Project created successfully',
       });
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {
         toast({
-          title: "Unauthorized",
-          description: "You are logged out. Logging in again...",
-          variant: "destructive",
+          title: 'Unauthorized',
+          description: 'You are logged out. Logging in again...',
+          variant: 'destructive',
         });
         setTimeout(() => {
-          window.location.href = "/api/login";
+          window.location.href = '/api/login';
         }, 500);
         return;
       }
-      console.error("Error creating project:", error);
+      console.error('Error creating project:', error);
       toast({
-        title: "Error",
-        description: "Failed to create project",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to create project',
+        variant: 'destructive',
       });
     },
   });
@@ -107,14 +128,14 @@ export default function Projects() {
   const form = useForm<ProjectFormData>({
     resolver: zodResolver(projectFormSchema),
     defaultValues: {
-      name: "",
-      description: "",
-      clientName: "",
-      status: "planning",
-      budget: "",
+      name: '',
+      description: '',
+      clientName: '',
+      status: 'planning',
+      budget: '',
       progress: 0,
-      startDate: "",
-      endDate: "",
+      startDate: '',
+      endDate: '',
     },
   });
 
@@ -128,11 +149,14 @@ export default function Projects() {
   );
 
   const filteredProjects = projects.filter((project: any) => {
-    const matchesSearch = project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    const matchesSearch =
+      project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       project.clientName?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === "all" || project.status === statusFilter;
-    const matchesClient = clientFilter === "all" || project.clientName === clientFilter;
-    
+    const matchesStatus =
+      statusFilter === 'all' || project.status === statusFilter;
+    const matchesClient =
+      clientFilter === 'all' || project.clientName === clientFilter;
+
     return matchesSearch && matchesStatus && matchesClient;
   });
 
@@ -158,7 +182,10 @@ export default function Projects() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-bold text-foreground">Projects</h2>
-          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+          <Dialog
+            open={isCreateDialogOpen}
+            onOpenChange={setIsCreateDialogOpen}
+          >
             <DialogTrigger asChild>
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
@@ -170,7 +197,10 @@ export default function Projects() {
                 <DialogTitle>Create New Project</DialogTitle>
               </DialogHeader>
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <form
+                  onSubmit={form.handleSubmit(onSubmit)}
+                  className="space-y-4"
+                >
                   <FormField
                     control={form.control}
                     name="name"
@@ -184,7 +214,7 @@ export default function Projects() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={form.control}
                     name="description"
@@ -192,13 +222,16 @@ export default function Projects() {
                       <FormItem>
                         <FormLabel>Description</FormLabel>
                         <FormControl>
-                          <Textarea placeholder="Enter project description" {...field} />
+                          <Textarea
+                            placeholder="Enter project description"
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={form.control}
                     name="clientName"
@@ -212,7 +245,7 @@ export default function Projects() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <div className="grid grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
@@ -220,7 +253,10 @@ export default function Projects() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Status</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Select status" />
@@ -230,14 +266,16 @@ export default function Projects() {
                               <SelectItem value="planning">Planning</SelectItem>
                               <SelectItem value="active">Active</SelectItem>
                               <SelectItem value="on_hold">On Hold</SelectItem>
-                              <SelectItem value="completed">Completed</SelectItem>
+                              <SelectItem value="completed">
+                                Completed
+                              </SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                    
+
                     <FormField
                       control={form.control}
                       name="budget"
@@ -252,7 +290,7 @@ export default function Projects() {
                       )}
                     />
                   </div>
-                  
+
                   <div className="grid grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
@@ -267,7 +305,7 @@ export default function Projects() {
                         </FormItem>
                       )}
                     />
-                    
+
                     <FormField
                       control={form.control}
                       name="endDate"
@@ -282,17 +320,22 @@ export default function Projects() {
                       )}
                     />
                   </div>
-                  
+
                   <div className="flex justify-end space-x-2">
-                    <Button 
-                      type="button" 
-                      variant="outline" 
+                    <Button
+                      type="button"
+                      variant="outline"
                       onClick={() => setIsCreateDialogOpen(false)}
                     >
                       Cancel
                     </Button>
-                    <Button type="submit" disabled={createProjectMutation.isPending}>
-                      {createProjectMutation.isPending ? "Creating..." : "Create Project"}
+                    <Button
+                      type="submit"
+                      disabled={createProjectMutation.isPending}
+                    >
+                      {createProjectMutation.isPending
+                        ? 'Creating...'
+                        : 'Create Project'}
                     </Button>
                   </div>
                 </form>

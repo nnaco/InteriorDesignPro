@@ -43,9 +43,9 @@ import {
   type InsertTemplateMilestone,
   type ClientPortalAccess,
   type InsertClientPortalAccess,
-} from "@shared/schema";
-import { db } from "./db";
-import { eq, desc, and, or, ilike, sql, ne, gte, lte } from "drizzle-orm";
+} from '@shared/schema';
+import { db } from './db';
+import { eq, desc, and, or, ilike, sql, ne, gte, lte } from 'drizzle-orm';
 
 export interface IStorage {
   // User operations (required for Replit Auth)
@@ -60,8 +60,14 @@ export interface IStorage {
   getProject(id: string): Promise<Project | undefined>;
   updateProject(id: string, data: Partial<InsertProject>): Promise<Project>;
   deleteProject(id: string): Promise<void>;
-  getProjectMembers(projectId: string): Promise<(ProjectMember & { user: User })[]>;
-  addProjectMember(projectId: string, userId: string, role?: string): Promise<void>;
+  getProjectMembers(
+    projectId: string
+  ): Promise<(ProjectMember & { user: User })[]>;
+  addProjectMember(
+    projectId: string,
+    userId: string,
+    role?: string
+  ): Promise<void>;
 
   // Task operations
   createTask(task: InsertTask): Promise<Task>;
@@ -102,6 +108,22 @@ export class DatabaseStorage implements IStorage {
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user;
   }
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user;
+  }
+
+  async updateUserOnRegistration(
+    id: string,
+    data: Pick<UpsertUser, 'profileImageUrl' | 'sub'>
+  ): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ hasJoined: true, updatedAt: new Date(), ...data })
+      .where(eq(users.id, id))
+      .returning();
+    return user;
+  }
 
   async upsertUser(userData: UpsertUser): Promise<User> {
     const [user] = await db
@@ -119,7 +141,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllUsers(): Promise<User[]> {
-    return await db.select().from(users).orderBy(users.firstName, users.lastName);
+    return await db
+      .select()
+      .from(users)
+      .orderBy(users.firstName, users.lastName);
   }
 
   async updateUserRole(id: string, role: string): Promise<User> {
@@ -157,10 +182,7 @@ export class DatabaseStorage implements IStorage {
         .from(projects)
         .leftJoin(projectMembers, eq(projects.id, projectMembers.projectId))
         .where(
-          or(
-            eq(projects.createdBy, userId),
-            eq(projectMembers.userId, userId)
-          )
+          or(eq(projects.createdBy, userId), eq(projectMembers.userId, userId))
         )
         .orderBy(desc(projects.createdAt));
     }
@@ -168,11 +190,17 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getProject(id: string): Promise<Project | undefined> {
-    const [project] = await db.select().from(projects).where(eq(projects.id, id));
+    const [project] = await db
+      .select()
+      .from(projects)
+      .where(eq(projects.id, id));
     return project;
   }
 
-  async updateProject(id: string, data: Partial<InsertProject>): Promise<Project> {
+  async updateProject(
+    id: string,
+    data: Partial<InsertProject>
+  ): Promise<Project> {
     const [project] = await db
       .update(projects)
       .set({ ...data, updatedAt: new Date() })
@@ -185,7 +213,9 @@ export class DatabaseStorage implements IStorage {
     await db.delete(projects).where(eq(projects.id, id));
   }
 
-  async getProjectMembers(projectId: string): Promise<(ProjectMember & { user: User })[]> {
+  async getProjectMembers(
+    projectId: string
+  ): Promise<(ProjectMember & { user: User })[]> {
     return await db
       .select({
         id: projectMembers.id,
@@ -200,7 +230,11 @@ export class DatabaseStorage implements IStorage {
       .where(eq(projectMembers.projectId, projectId));
   }
 
-  async addProjectMember(projectId: string, userId: string, role = "member"): Promise<void> {
+  async addProjectMember(
+    projectId: string,
+    userId: string,
+    role = 'member'
+  ): Promise<void> {
     await db.insert(projectMembers).values({
       projectId,
       userId,
@@ -216,15 +250,19 @@ export class DatabaseStorage implements IStorage {
 
   async getTasks(projectId?: string, userId?: string): Promise<Task[]> {
     if (projectId) {
-      return await db.select().from(tasks)
+      return await db
+        .select()
+        .from(tasks)
         .where(eq(tasks.projectId, projectId))
         .orderBy(desc(tasks.createdAt));
     } else if (userId) {
-      return await db.select().from(tasks)
+      return await db
+        .select()
+        .from(tasks)
         .where(eq(tasks.assigneeId, userId))
         .orderBy(desc(tasks.createdAt));
     }
-    
+
     return await db.select().from(tasks).orderBy(desc(tasks.createdAt));
   }
 
@@ -252,22 +290,30 @@ export class DatabaseStorage implements IStorage {
 
   // Document operations
   async createDocument(document: InsertDocument): Promise<Document> {
-    const [newDocument] = await db.insert(documents).values(document).returning();
+    const [newDocument] = await db
+      .insert(documents)
+      .values(document)
+      .returning();
     return newDocument;
   }
 
   async getDocuments(projectId?: string): Promise<Document[]> {
     if (projectId) {
-      return await db.select().from(documents)
+      return await db
+        .select()
+        .from(documents)
         .where(eq(documents.projectId, projectId))
         .orderBy(desc(documents.createdAt));
     }
-    
+
     return await db.select().from(documents).orderBy(desc(documents.createdAt));
   }
 
   async getDocument(id: string): Promise<Document | undefined> {
-    const [document] = await db.select().from(documents).where(eq(documents.id, id));
+    const [document] = await db
+      .select()
+      .from(documents)
+      .where(eq(documents.id, id));
     return document;
   }
 
@@ -292,17 +338,24 @@ export class DatabaseStorage implements IStorage {
         isRead: messages.isRead,
       })
       .from(messages)
-      .where(or(eq(messages.senderId, userId), eq(messages.recipientId, userId)))
+      .where(
+        or(eq(messages.senderId, userId), eq(messages.recipientId, userId))
+      )
       .orderBy(desc(messages.createdAt))
       .limit(50);
 
     // Group by conversation and get latest message for each
     const grouped = conversations.reduce((acc, msg) => {
-      const otherUserId = msg.senderId === userId ? msg.recipientId : msg.senderId;
+      const otherUserId =
+        msg.senderId === userId ? msg.recipientId : msg.senderId;
       const key = msg.conversationId || otherUserId;
-      
-      if (!acc[key] || (msg.lastMessageTime && acc[key]?.lastMessageTime && 
-          new Date(msg.lastMessageTime) > new Date(acc[key].lastMessageTime))) {
+
+      if (
+        !acc[key] ||
+        (msg.lastMessageTime &&
+          acc[key]?.lastMessageTime &&
+          new Date(msg.lastMessageTime) > new Date(acc[key].lastMessageTime))
+      ) {
         acc[key] = { ...msg, otherUserId };
       }
       return acc;
@@ -324,8 +377,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Notification operations
-  async createNotification(notification: InsertNotification): Promise<Notification> {
-    const [newNotification] = await db.insert(notifications).values(notification).returning();
+  async createNotification(
+    notification: InsertNotification
+  ): Promise<Notification> {
+    const [newNotification] = await db
+      .insert(notifications)
+      .values(notification)
+      .returning();
     return newNotification;
   }
 
@@ -339,11 +397,17 @@ export class DatabaseStorage implements IStorage {
   }
 
   async markNotificationAsRead(id: string): Promise<void> {
-    await db.update(notifications).set({ isRead: true }).where(eq(notifications.id, id));
+    await db
+      .update(notifications)
+      .set({ isRead: true })
+      .where(eq(notifications.id, id));
   }
 
   async markAllNotificationsAsRead(userId: string): Promise<void> {
-    await db.update(notifications).set({ isRead: true }).where(eq(notifications.userId, userId));
+    await db
+      .update(notifications)
+      .set({ isRead: true })
+      .where(eq(notifications.userId, userId));
   }
 
   // Additional methods needed by services
@@ -351,19 +415,27 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(users);
   }
 
-  async updateUserRole(userId: string, role: string): Promise<void> {
-    await db.update(users).set({ role }).where(eq(users.id, userId));
-  }
-
   async getDocumentVersions(documentId: string): Promise<Document[]> {
-    return await db.select().from(documents)
+    return db
+      .select()
+      .from(documents)
       .where(eq(documents.parentDocumentId, documentId))
       .orderBy(desc(documents.version));
   }
 
-  async getDocumentByChecksum(checksum: string, projectId: string): Promise<Document | undefined> {
-    const [document] = await db.select().from(documents)
-      .where(and(eq(documents.checksum, checksum), eq(documents.projectId, projectId)));
+  async getDocumentByChecksum(
+    checksum: string,
+    projectId: string
+  ): Promise<Document | undefined> {
+    const [document] = await db
+      .select()
+      .from(documents)
+      .where(
+        and(
+          eq(documents.checksum, checksum),
+          eq(documents.projectId, projectId)
+        )
+      );
     return document;
   }
 
@@ -372,29 +444,36 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getTasksDueBetween(startDate: Date, endDate: Date): Promise<Task[]> {
-    return await db.select().from(tasks)
-      .where(and(
-        gte(tasks.dueDate, startDate.toISOString()),
-        lte(tasks.dueDate, endDate.toISOString()),
-        ne(tasks.status, 'done')
-      ));
+    return await db
+      .select()
+      .from(tasks)
+      .where(
+        and(
+          gte(tasks.dueDate, startDate.toISOString()),
+          lte(tasks.dueDate, endDate.toISOString()),
+          ne(tasks.status, 'done')
+        )
+      );
   }
 
   async getOverdueTasks(): Promise<Task[]> {
-    return await db.select().from(tasks)
-      .where(and(
-        lte(tasks.dueDate, new Date().toISOString()),
-        ne(tasks.status, 'done')
-      ));
-  }
-
-  async markNotificationAsRead(id: string): Promise<void> {
-    await db.update(notifications).set({ isRead: true }).where(eq(notifications.id, id));
+    return await db
+      .select()
+      .from(tasks)
+      .where(
+        and(
+          lte(tasks.dueDate, new Date().toISOString()),
+          ne(tasks.status, 'done')
+        )
+      );
   }
 
   // Activity operations
   async createActivity(activity: InsertActivity): Promise<Activity> {
-    const [newActivity] = await db.insert(activities).values(activity).returning();
+    const [newActivity] = await db
+      .insert(activities)
+      .values(activity)
+      .returning();
     return newActivity;
   }
 
@@ -414,11 +493,8 @@ export class DatabaseStorage implements IStorage {
       .leftJoin(projectMembers, eq(projects.id, projectMembers.projectId))
       .where(
         and(
-          eq(projects.status, "active"),
-          or(
-            eq(projects.createdBy, userId),
-            eq(projectMembers.userId, userId)
-          )
+          eq(projects.status, 'active'),
+          or(eq(projects.createdBy, userId), eq(projectMembers.userId, userId))
         )
       );
 
@@ -428,7 +504,7 @@ export class DatabaseStorage implements IStorage {
       .where(
         and(
           eq(tasks.assigneeId, userId),
-          or(eq(tasks.status, "todo"), eq(tasks.status, "in_progress"))
+          or(eq(tasks.status, 'todo'), eq(tasks.status, 'in_progress'))
         )
       );
 
@@ -450,25 +526,41 @@ export class DatabaseStorage implements IStorage {
     return entry;
   }
 
-  async getTimeEntries(filters: { taskId?: string; projectId?: string; userId?: string }): Promise<TimeEntry[]> {
+  async getTimeEntries(filters: {
+    taskId?: string;
+    projectId?: string;
+    userId?: string;
+  }): Promise<TimeEntry[]> {
     const conditions = [];
     if (filters.taskId) conditions.push(eq(timeEntries.taskId, filters.taskId));
-    if (filters.projectId) conditions.push(eq(timeEntries.projectId, filters.projectId));
+    if (filters.projectId)
+      conditions.push(eq(timeEntries.projectId, filters.projectId));
     if (filters.userId) conditions.push(eq(timeEntries.userId, filters.userId));
 
-    return await db.select().from(timeEntries)
+    return await db
+      .select()
+      .from(timeEntries)
       .where(conditions.length > 0 ? and(...conditions) : undefined)
       .orderBy(desc(timeEntries.startTime));
   }
 
   async getActiveTimeEntry(userId: string): Promise<TimeEntry | undefined> {
-    const [entry] = await db.select().from(timeEntries)
-      .where(and(eq(timeEntries.userId, userId), eq(timeEntries.isRunning, true)));
+    const [entry] = await db
+      .select()
+      .from(timeEntries)
+      .where(
+        and(eq(timeEntries.userId, userId), eq(timeEntries.isRunning, true))
+      );
     return entry;
   }
 
-  async stopTimeEntry(entryId: string, endTime: Date, duration: number): Promise<void> {
-    await db.update(timeEntries)
+  async stopTimeEntry(
+    entryId: string,
+    endTime: Date,
+    duration: number
+  ): Promise<void> {
+    await db
+      .update(timeEntries)
       .set({ endTime, duration, isRunning: false })
       .where(eq(timeEntries.id, entryId));
   }
@@ -479,12 +571,19 @@ export class DatabaseStorage implements IStorage {
     return newInvoice;
   }
 
-  async getInvoices(filters: { projectId?: string; clientId?: string }): Promise<Invoice[]> {
+  async getInvoices(filters: {
+    projectId?: string;
+    clientId?: string;
+  }): Promise<Invoice[]> {
     const conditions = [];
-    if (filters.projectId) conditions.push(eq(invoices.projectId, filters.projectId));
-    if (filters.clientId) conditions.push(eq(invoices.clientId, filters.clientId));
+    if (filters.projectId)
+      conditions.push(eq(invoices.projectId, filters.projectId));
+    if (filters.clientId)
+      conditions.push(eq(invoices.clientId, filters.clientId));
 
-    return await db.select().from(invoices)
+    return await db
+      .select()
+      .from(invoices)
       .where(conditions.length > 0 ? and(...conditions) : undefined)
       .orderBy(desc(invoices.createdAt));
   }
@@ -495,97 +594,150 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getInvoiceItems(invoiceId: string): Promise<InvoiceItem[]> {
-    return await db.select().from(invoiceItems)
+    return await db
+      .select()
+      .from(invoiceItems)
       .where(eq(invoiceItems.invoiceId, invoiceId));
   }
 
   // Project Template operations
-  async createProjectTemplate(template: InsertProjectTemplate): Promise<ProjectTemplate> {
-    const [newTemplate] = await db.insert(projectTemplates).values(template).returning();
+  async createProjectTemplate(
+    template: InsertProjectTemplate
+  ): Promise<ProjectTemplate> {
+    const [newTemplate] = await db
+      .insert(projectTemplates)
+      .values(template)
+      .returning();
     return newTemplate;
   }
 
   async getProjectTemplates(): Promise<ProjectTemplate[]> {
-    return await db.select().from(projectTemplates)
-      .orderBy(desc(projectTemplates.usageCount), desc(projectTemplates.createdAt));
+    return await db
+      .select()
+      .from(projectTemplates)
+      .orderBy(
+        desc(projectTemplates.usageCount),
+        desc(projectTemplates.createdAt)
+      );
   }
 
   async getProjectTemplate(id: string): Promise<ProjectTemplate | undefined> {
-    const [template] = await db.select().from(projectTemplates)
+    const [template] = await db
+      .select()
+      .from(projectTemplates)
       .where(eq(projectTemplates.id, id));
     return template;
   }
 
   async incrementTemplateUsage(id: string): Promise<void> {
-    await db.update(projectTemplates)
+    await db
+      .update(projectTemplates)
       .set({ usageCount: sql`${projectTemplates.usageCount} + 1` })
       .where(eq(projectTemplates.id, id));
   }
 
-  async createTemplateTasks(tasks: InsertTemplateTask[]): Promise<TemplateTask[]> {
+  async createTemplateTasks(
+    tasks: InsertTemplateTask[]
+  ): Promise<TemplateTask[]> {
     return await db.insert(templateTasks).values(tasks).returning();
   }
 
   async getTemplateTasks(templateId: string): Promise<TemplateTask[]> {
-    return await db.select().from(templateTasks)
+    return await db
+      .select()
+      .from(templateTasks)
       .where(eq(templateTasks.templateId, templateId))
       .orderBy(templateTasks.orderIndex);
   }
 
-  async createTemplateMilestones(milestones: InsertTemplateMilestone[]): Promise<TemplateMilestone[]> {
+  async createTemplateMilestones(
+    milestones: InsertTemplateMilestone[]
+  ): Promise<TemplateMilestone[]> {
     return await db.insert(templateMilestones).values(milestones).returning();
   }
 
-  async getTemplateMilestones(templateId: string): Promise<TemplateMilestone[]> {
-    return await db.select().from(templateMilestones)
+  async getTemplateMilestones(
+    templateId: string
+  ): Promise<TemplateMilestone[]> {
+    return await db
+      .select()
+      .from(templateMilestones)
       .where(eq(templateMilestones.templateId, templateId))
       .orderBy(templateMilestones.orderIndex);
   }
 
   // Client Portal operations
-  async createClientPortalAccess(access: InsertClientPortalAccess): Promise<ClientPortalAccess> {
-    const [newAccess] = await db.insert(clientPortalAccess).values(access).returning();
+  async createClientPortalAccess(
+    access: InsertClientPortalAccess
+  ): Promise<ClientPortalAccess> {
+    const [newAccess] = await db
+      .insert(clientPortalAccess)
+      .values(access)
+      .returning();
     return newAccess;
   }
 
   async getClientPortalAccess(clientId: string): Promise<ClientPortalAccess[]> {
-    return await db.select().from(clientPortalAccess)
-      .where(and(eq(clientPortalAccess.clientId, clientId), eq(clientPortalAccess.isActive, true)));
+    return await db
+      .select()
+      .from(clientPortalAccess)
+      .where(
+        and(
+          eq(clientPortalAccess.clientId, clientId),
+          eq(clientPortalAccess.isActive, true)
+        )
+      );
   }
 
   async getClientProjects(clientId: string): Promise<Project[]> {
-    return await db.select({
-      id: projects.id,
-      name: projects.name,
-      description: projects.description,
-      status: projects.status,
-      budget: projects.budget,
-      startDate: projects.startDate,
-      dueDate: projects.dueDate,
-      createdAt: projects.createdAt,
-      updatedAt: projects.updatedAt,
-      createdBy: projects.createdBy,
-      clientId: projects.clientId,
-      progress: projects.progress,
-    }).from(projects)
-      .innerJoin(clientPortalAccess, eq(projects.id, clientPortalAccess.projectId))
-      .where(and(
-        eq(clientPortalAccess.clientId, clientId),
-        eq(clientPortalAccess.isActive, true)
-      ));
+    return db
+      .select({
+        id: projects.id,
+        name: projects.name,
+        description: projects.description,
+        status: projects.status,
+        budget: projects.budget,
+        startDate: projects.startDate,
+        dueDate: projects.endDate,
+        createdAt: projects.createdAt,
+        updatedAt: projects.updatedAt,
+        createdBy: projects.createdBy,
+        clientId: projects.clientId,
+        progress: projects.progress,
+      })
+      .from(projects)
+      .innerJoin(
+        clientPortalAccess,
+        eq(projects.id, clientPortalAccess.projectId)
+      )
+      .where(
+        and(
+          eq(clientPortalAccess.clientId, clientId),
+          eq(clientPortalAccess.isActive, true)
+        )
+      );
   }
 
   async getClientDocuments(clientId: string): Promise<Document[]> {
-    return await db.select().from(documents)
-      .innerJoin(clientPortalAccess, eq(documents.projectId, clientPortalAccess.projectId))
-      .where(and(
-        eq(clientPortalAccess.clientId, clientId),
-        eq(clientPortalAccess.isActive, true)
-      ));
+    return await db
+      .select()
+      .from(documents)
+      .innerJoin(
+        clientPortalAccess,
+        eq(documents.projectId, clientPortalAccess.projectId)
+      )
+      .where(
+        and(
+          eq(clientPortalAccess.clientId, clientId),
+          eq(clientPortalAccess.isActive, true)
+        )
+      );
   }
 
   async getClientInvoices(clientId: string): Promise<Invoice[]> {
-    return await db.select().from(invoices)
+    return await db
+      .select()
+      .from(invoices)
       .where(eq(invoices.clientId, clientId))
       .orderBy(desc(invoices.createdAt));
   }

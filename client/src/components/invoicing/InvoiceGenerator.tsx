@@ -1,16 +1,22 @@
-import { useState } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/hooks/use-toast";
-import { FileText, Download, Send, Plus, X, Calculator } from "lucide-react";
-import { format } from "date-fns";
+import { useState } from 'react';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
+import { FileText, Download, Send, Plus, X, Calculator } from 'lucide-react';
+import { format } from 'date-fns';
 
 interface InvoiceItem {
   id: string;
@@ -41,17 +47,20 @@ interface InvoiceGeneratorProps {
   clientId?: string;
 }
 
-export function InvoiceGenerator({ projectId, clientId }: InvoiceGeneratorProps) {
+export function InvoiceGenerator({
+  projectId,
+  clientId,
+}: InvoiceGeneratorProps) {
   const [isCreating, setIsCreating] = useState(false);
   const [formData, setFormData] = useState({
-    projectId: projectId || "",
-    clientId: clientId || "",
-    dueDate: "",
+    projectId: projectId || '',
+    clientId: clientId || '',
+    dueDate: '',
     taxRate: 0,
-    notes: "",
+    notes: '',
   });
   const [items, setItems] = useState<Omit<InvoiceItem, 'id'>[]>([
-    { description: "", quantity: 1, rate: 0, amount: 0 }
+    { description: '', quantity: 1, rate: 0, amount: 0 },
   ]);
   const { toast } = useToast();
 
@@ -85,58 +94,62 @@ export function InvoiceGenerator({ projectId, clientId }: InvoiceGeneratorProps)
     },
     onSuccess: () => {
       toast({
-        title: "Invoice Created",
-        description: "Invoice has been generated successfully.",
+        title: 'Invoice Created',
+        description: 'Invoice has been generated successfully.',
       });
       setIsCreating(false);
       resetForm();
     },
     onError: () => {
       toast({
-        title: "Error",
-        description: "Failed to create invoice. Please try again.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to create invoice. Please try again.',
+        variant: 'destructive',
       });
     },
   });
 
   const resetForm = () => {
     setFormData({
-      projectId: projectId || "",
-      clientId: clientId || "",
-      dueDate: "",
+      projectId: projectId || '',
+      clientId: clientId || '',
+      dueDate: '',
       taxRate: 0,
-      notes: "",
+      notes: '',
     });
-    setItems([{ description: "", quantity: 1, rate: 0, amount: 0 }]);
+    setItems([{ description: '', quantity: 1, rate: 0, amount: 0 }]);
   };
 
   const addItem = () => {
-    setItems([...items, { description: "", quantity: 1, rate: 0, amount: 0 }]);
+    setItems([...items, { description: '', quantity: 1, rate: 0, amount: 0 }]);
   };
 
   const removeItem = (index: number) => {
     setItems(items.filter((_, i) => i !== index));
   };
 
-  const updateItem = (index: number, field: keyof Omit<InvoiceItem, 'id'>, value: any) => {
+  const updateItem = (
+    index: number,
+    field: keyof Omit<InvoiceItem, 'id'>,
+    value: any
+  ) => {
     const newItems = [...items];
     newItems[index] = { ...newItems[index], [field]: value };
-    
+
     // Recalculate amount
     if (field === 'quantity' || field === 'rate') {
       newItems[index].amount = newItems[index].quantity * newItems[index].rate;
     }
-    
+
     setItems(newItems);
   };
 
   const autoGenerateFromTimeEntries = () => {
     if (!timeEntries.length) {
       toast({
-        title: "No Time Entries",
-        description: "No time entries found for this project.",
-        variant: "destructive",
+        title: 'No Time Entries',
+        description: 'No time entries found for this project.',
+        variant: 'destructive',
       });
       return;
     }
@@ -147,7 +160,7 @@ export function InvoiceGenerator({ projectId, clientId }: InvoiceGeneratorProps)
         acc[entry.taskId] = {
           taskTitle: entry.taskTitle,
           totalMinutes: 0,
-          entries: []
+          entries: [],
         };
       }
       acc[entry.taskId].totalMinutes += entry.duration;
@@ -158,14 +171,14 @@ export function InvoiceGenerator({ projectId, clientId }: InvoiceGeneratorProps)
     // Convert to invoice items
     const newItems = Object.values(taskGroups).map((group: any) => ({
       description: `${group.taskTitle} - Time tracking`,
-      quantity: Math.round(group.totalMinutes / 60 * 100) / 100, // Hours with 2 decimal places
+      quantity: Math.round((group.totalMinutes / 60) * 100) / 100, // Hours with 2 decimal places
       rate: 75, // Default hourly rate
-      amount: Math.round(group.totalMinutes / 60 * 75 * 100) / 100,
+      amount: Math.round((group.totalMinutes / 60) * 75 * 100) / 100,
     }));
 
     setItems(newItems as Omit<InvoiceItem, 'id'>[]);
     toast({
-      title: "Items Generated",
+      title: 'Items Generated',
       description: `Generated ${newItems.length} invoice items from time entries.`,
     });
   };
@@ -176,28 +189,28 @@ export function InvoiceGenerator({ projectId, clientId }: InvoiceGeneratorProps)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.projectId || !formData.clientId) {
       toast({
-        title: "Missing Information",
-        description: "Please select both project and client.",
-        variant: "destructive",
+        title: 'Missing Information',
+        description: 'Please select both project and client.',
+        variant: 'destructive',
       });
       return;
     }
 
-    if (items.length === 0 || items.every(item => !item.description)) {
+    if (items.length === 0 || items.every((item) => !item.description)) {
       toast({
-        title: "No Items",
-        description: "Please add at least one invoice item.",
-        variant: "destructive",
+        title: 'No Items',
+        description: 'Please add at least one invoice item.',
+        variant: 'destructive',
       });
       return;
     }
 
     const invoiceData = {
       ...formData,
-      items: items.filter(item => item.description),
+      items: items.filter((item) => item.description),
       subtotal,
       taxAmount,
       total,
@@ -249,7 +262,9 @@ export function InvoiceGenerator({ projectId, clientId }: InvoiceGeneratorProps)
               <Label>Project</Label>
               <Select
                 value={formData.projectId}
-                onValueChange={(value) => setFormData({...formData, projectId: value})}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, projectId: value })
+                }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select project" />
@@ -268,7 +283,9 @@ export function InvoiceGenerator({ projectId, clientId }: InvoiceGeneratorProps)
               <Label>Client</Label>
               <Select
                 value={formData.clientId}
-                onValueChange={(value) => setFormData({...formData, clientId: value})}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, clientId: value })
+                }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select client" />
@@ -291,7 +308,9 @@ export function InvoiceGenerator({ projectId, clientId }: InvoiceGeneratorProps)
               <Input
                 type="date"
                 value={formData.dueDate}
-                onChange={(e) => setFormData({...formData, dueDate: e.target.value})}
+                onChange={(e) =>
+                  setFormData({ ...formData, dueDate: e.target.value })
+                }
                 required
               />
             </div>
@@ -304,7 +323,12 @@ export function InvoiceGenerator({ projectId, clientId }: InvoiceGeneratorProps)
                 max="100"
                 step="0.01"
                 value={formData.taxRate}
-                onChange={(e) => setFormData({...formData, taxRate: parseFloat(e.target.value) || 0})}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    taxRate: parseFloat(e.target.value) || 0,
+                  })
+                }
               />
             </div>
           </div>
@@ -336,12 +360,17 @@ export function InvoiceGenerator({ projectId, clientId }: InvoiceGeneratorProps)
 
             <div className="space-y-2">
               {items.map((item, index) => (
-                <div key={index} className="grid grid-cols-12 gap-2 items-center">
+                <div
+                  key={index}
+                  className="grid grid-cols-12 gap-2 items-center"
+                >
                   <div className="col-span-5">
                     <Input
                       placeholder="Description"
                       value={item.description}
-                      onChange={(e) => updateItem(index, 'description', e.target.value)}
+                      onChange={(e) =>
+                        updateItem(index, 'description', e.target.value)
+                      }
                     />
                   </div>
                   <div className="col-span-2">
@@ -351,7 +380,13 @@ export function InvoiceGenerator({ projectId, clientId }: InvoiceGeneratorProps)
                       min="0"
                       step="0.01"
                       value={item.quantity}
-                      onChange={(e) => updateItem(index, 'quantity', parseFloat(e.target.value) || 0)}
+                      onChange={(e) =>
+                        updateItem(
+                          index,
+                          'quantity',
+                          parseFloat(e.target.value) || 0
+                        )
+                      }
                     />
                   </div>
                   <div className="col-span-2">
@@ -361,7 +396,13 @@ export function InvoiceGenerator({ projectId, clientId }: InvoiceGeneratorProps)
                       min="0"
                       step="0.01"
                       value={item.rate}
-                      onChange={(e) => updateItem(index, 'rate', parseFloat(e.target.value) || 0)}
+                      onChange={(e) =>
+                        updateItem(
+                          index,
+                          'rate',
+                          parseFloat(e.target.value) || 0
+                        )
+                      }
                     />
                   </div>
                   <div className="col-span-2">
@@ -411,7 +452,9 @@ export function InvoiceGenerator({ projectId, clientId }: InvoiceGeneratorProps)
             <Textarea
               placeholder="Additional notes or terms..."
               value={formData.notes}
-              onChange={(e) => setFormData({...formData, notes: e.target.value})}
+              onChange={(e) =>
+                setFormData({ ...formData, notes: e.target.value })
+              }
             />
           </div>
 
@@ -445,10 +488,14 @@ function InvoiceList({ invoices }: InvoiceListProps) {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'paid': return 'bg-green-100 text-green-800';
-      case 'sent': return 'bg-blue-100 text-blue-800';
-      case 'overdue': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'paid':
+        return 'bg-green-100 text-green-800';
+      case 'sent':
+        return 'bg-blue-100 text-blue-800';
+      case 'overdue':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   };
 

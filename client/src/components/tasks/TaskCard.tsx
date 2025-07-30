@@ -1,16 +1,16 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
-import { MoreHorizontal } from "lucide-react";
-import { format, isValid } from "date-fns";
-import { useQuery } from "@tanstack/react-query";
+} from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
+import { MoreHorizontal } from 'lucide-react';
+import { format, isValid } from 'date-fns';
+import { useQuery } from '@tanstack/react-query';
 
 interface TaskCardProps {
   task: {
@@ -28,11 +28,11 @@ interface TaskCardProps {
 
 export function TaskCard({ task, onStatusChange }: TaskCardProps) {
   const { data: projects = [] } = useQuery({
-    queryKey: ["/api/projects"],
+    queryKey: ['/api/projects'],
   });
 
   const { data: users = [] } = useQuery({
-    queryKey: ["/api/users"],
+    queryKey: ['/api/users'],
   });
 
   const project = projects.find((p: any) => p.id === task.projectId);
@@ -40,39 +40,39 @@ export function TaskCard({ task, onStatusChange }: TaskCardProps) {
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case "high":
-        return "priority-high";
-      case "medium":
-        return "priority-medium";
-      case "low":
-        return "priority-low";
+      case 'high':
+        return 'priority-high';
+      case 'medium':
+        return 'priority-medium';
+      case 'low':
+        return 'priority-low';
       default:
-        return "priority-medium";
+        return 'priority-medium';
     }
   };
 
   const getAssigneeInitials = (user: any) => {
-    if (!user) return "?";
-    return `${user.firstName?.[0] || ""}${user.lastName?.[0] || ""}`;
+    if (!user) return '?';
+    return `${user.firstName?.[0] || ''}${user.lastName?.[0] || ''}`;
   };
 
   const getAssigneeName = (user: any) => {
-    if (!user) return "Unassigned";
-    return `${user.firstName || ""} ${user.lastName || ""}`.trim();
+    if (!user) return 'Unassigned';
+    return `${user.firstName || ''} ${user.lastName || ''}`.trim();
   };
 
   const formatDueDate = (dateString?: string) => {
     if (!dateString) return null;
     const date = new Date(dateString);
     if (!isValid(date)) return null;
-    return format(date, "MMM d");
+    return format(date, 'MMM d');
   };
 
   const statuses = [
-    { value: "todo", label: "To Do" },
-    { value: "in_progress", label: "In Progress" },
-    { value: "review", label: "Review" },
-    { value: "done", label: "Done" },
+    { value: 'todo', label: 'To Do' },
+    { value: 'in_progress', label: 'In Progress' },
+    { value: 'review', label: 'Review' },
+    { value: 'done', label: 'Done' },
   ];
 
   return (
@@ -105,23 +105,31 @@ export function TaskCard({ task, onStatusChange }: TaskCardProps) {
             </DropdownMenu>
           </div>
         </div>
-        
+
         {project && (
           <p className="text-xs text-muted-foreground mb-3">{project.name}</p>
         )}
 
-        {task.status === "in_progress" && (
+        {task.status === 'in_progress' && (
           <div className="w-full bg-secondary rounded-full h-2 mb-3">
-            <div className="bg-blue-500 h-2 rounded-full" style={{ width: "75%" }}></div>
+            <div
+              className="bg-blue-500 h-2 rounded-full"
+              style={{ width: '75%' }}
+            ></div>
           </div>
         )}
-        
+
         <div className="flex items-center justify-between">
           <div className="flex -space-x-2">
             {assignee && (
               <Avatar className="w-6 h-6 border-2 border-white">
-                <AvatarImage src={assignee.profileImageUrl} alt={getAssigneeName(assignee)} />
-                <AvatarFallback className="text-xs">{getAssigneeInitials(assignee)}</AvatarFallback>
+                <AvatarImage
+                  src={assignee.profileImageUrl}
+                  alt={getAssigneeName(assignee)}
+                />
+                <AvatarFallback className="text-xs">
+                  {getAssigneeInitials(assignee)}
+                </AvatarFallback>
               </Avatar>
             )}
           </div>

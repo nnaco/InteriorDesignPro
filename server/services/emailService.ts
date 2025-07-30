@@ -15,7 +15,7 @@ class EmailService {
   constructor() {
     this.mailService = new MailService();
     this.isConfigured = false;
-    
+
     if (process.env.SENDGRID_API_KEY) {
       this.mailService.setApiKey(process.env.SENDGRID_API_KEY);
       this.isConfigured = true;
@@ -58,7 +58,9 @@ class EmailService {
         <p>You have been assigned to a new project: <strong>${projectName}</strong></p>
         <p>You can view the project details and get started by logging into DesignFlow.</p>
         <div style="margin: 30px 0;">
-          <a href="${process.env.APP_URL || 'https://designflow.app'}/projects/${projectId}" 
+          <a href="${
+            process.env.APP_URL || 'https://designflow.app'
+          }/projects/${projectId}" 
              style="background: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;">
             View Project
           </a>
@@ -68,7 +70,13 @@ class EmailService {
     `;
     const text = `Hi ${userName}, you have been assigned to project: ${projectName}. View it at: ${process.env.APP_URL}/projects/${projectId}`;
 
-    return this.sendEmail({ to: userEmail, subject, html, text, from: 'noreply@designflow.app' });
+    return this.sendEmail({
+      to: userEmail,
+      subject,
+      html,
+      text,
+      from: 'noreply@designflow.app',
+    });
   }
 
   async sendTaskAssignmentNotification(
@@ -80,7 +88,7 @@ class EmailService {
   ): Promise<boolean> {
     const subject = `New task assigned: ${taskTitle}`;
     const dueDateText = dueDate ? ` Due: ${dueDate.toLocaleDateString()}` : '';
-    
+
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #2563eb;">Task Assignment - DesignFlow</h2>
@@ -89,7 +97,11 @@ class EmailService {
         <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
           <h3 style="color: #1e293b; margin: 0 0 10px 0;">${taskTitle}</h3>
           <p style="margin: 5px 0;"><strong>Project:</strong> ${projectName}</p>
-          ${dueDate ? `<p style="margin: 5px 0;"><strong>Due Date:</strong> ${dueDate.toLocaleDateString()}</p>` : ''}
+          ${
+            dueDate
+              ? `<p style="margin: 5px 0;"><strong>Due Date:</strong> ${dueDate.toLocaleDateString()}</p>`
+              : ''
+          }
         </div>
         <p>Please log into DesignFlow to view the task details and get started.</p>
         <div style="margin: 30px 0;">
@@ -103,7 +115,13 @@ class EmailService {
     `;
     const text = `Hi ${userName}, new task assigned: ${taskTitle} in project ${projectName}.${dueDateText}`;
 
-    return this.sendEmail({ to: userEmail, subject, html, text, from: 'noreply@designflow.app' });
+    return this.sendEmail({
+      to: userEmail,
+      subject,
+      html,
+      text,
+      from: 'noreply@designflow.app',
+    });
   }
 
   async sendTaskReminderNotification(
@@ -113,10 +131,10 @@ class EmailService {
     dueDate: Date,
     isOverdue: boolean = false
   ): Promise<boolean> {
-    const subject = isOverdue 
-      ? `Overdue Task: ${taskTitle}` 
+    const subject = isOverdue
+      ? `Overdue Task: ${taskTitle}`
       : `Task Due Reminder: ${taskTitle}`;
-    
+
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: ${isOverdue ? '#dc2626' : '#f59e0b'};">
@@ -124,15 +142,23 @@ class EmailService {
         </h2>
         <p>Hi ${userName},</p>
         <p>This is a reminder about your task:</p>
-        <div style="background: ${isOverdue ? '#fee2e2' : '#fef3c7'}; padding: 20px; border-radius: 8px; margin: 20px 0;">
+        <div style="background: ${
+          isOverdue ? '#fee2e2' : '#fef3c7'
+        }; padding: 20px; border-radius: 8px; margin: 20px 0;">
           <h3 style="color: #1e293b; margin: 0 0 10px 0;">${taskTitle}</h3>
           <p style="margin: 5px 0;"><strong>Due Date:</strong> ${dueDate.toLocaleDateString()}</p>
-          ${isOverdue ? '<p style="color: #dc2626; font-weight: bold;">This task is overdue!</p>' : ''}
+          ${
+            isOverdue
+              ? '<p style="color: #dc2626; font-weight: bold;">This task is overdue!</p>'
+              : ''
+          }
         </div>
         <p>Please log into DesignFlow to update the task status.</p>
         <div style="margin: 30px 0;">
           <a href="${process.env.APP_URL || 'https://designflow.app'}/tasks" 
-             style="background: ${isOverdue ? '#dc2626' : '#f59e0b'}; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;">
+             style="background: ${
+               isOverdue ? '#dc2626' : '#f59e0b'
+             }; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;">
             View Tasks
           </a>
         </div>
@@ -140,7 +166,12 @@ class EmailService {
       </div>
     `;
 
-    return this.sendEmail({ to: userEmail, subject, html, from: 'noreply@designflow.app' });
+    return this.sendEmail({
+      to: userEmail,
+      subject,
+      html,
+      from: 'noreply@designflow.app',
+    });
   }
 
   async sendProjectStatusUpdateNotification(
@@ -152,7 +183,7 @@ class EmailService {
     projectId: string
   ): Promise<boolean> {
     const subject = `Project Status Update: ${projectName}`;
-    
+
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #2563eb;">Project Status Update - DesignFlow</h2>
@@ -163,7 +194,9 @@ class EmailService {
           <p><strong>New Status:</strong> ${newStatus}</p>
         </div>
         <div style="margin: 30px 0;">
-          <a href="${process.env.APP_URL || 'https://designflow.app'}/projects/${projectId}" 
+          <a href="${
+            process.env.APP_URL || 'https://designflow.app'
+          }/projects/${projectId}" 
              style="background: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;">
             View Project
           </a>
@@ -172,7 +205,12 @@ class EmailService {
       </div>
     `;
 
-    return this.sendEmail({ to: userEmail, subject, html, from: 'noreply@designflow.app' });
+    return this.sendEmail({
+      to: userEmail,
+      subject,
+      html,
+      from: 'noreply@designflow.app',
+    });
   }
 }
 

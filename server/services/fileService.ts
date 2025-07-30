@@ -80,7 +80,12 @@ class FileService {
       const existingDoc = await this.findFileByChecksum(checksum, projectId);
       if (existingDoc) {
         // File already exists, create a new version instead
-        return await this.createFileVersion(existingDoc.id, fileBuffer, originalName, uploadedBy);
+        return await this.createFileVersion(
+          existingDoc.id,
+          fileBuffer,
+          originalName,
+          uploadedBy
+        );
       }
 
       // Write file to disk
@@ -121,7 +126,9 @@ class FileService {
       }
 
       const newVersion = existingDoc.version + 1;
-      const filename = this.generateUniqueFilename(`v${newVersion}-${originalName}`);
+      const filename = this.generateUniqueFilename(
+        `v${newVersion}-${originalName}`
+      );
       const versionPath = path.join(this.versionsDir, filename);
       const checksum = this.generateChecksum(fileBuffer);
 
@@ -154,7 +161,7 @@ class FileService {
   async getFileVersions(documentId: string): Promise<FileVersion[]> {
     try {
       const versions = await storage.getDocumentVersions(documentId);
-      return versions.map(doc => ({
+      return versions.map((doc) => ({
         id: doc.id,
         version: doc.version,
         filename: doc.originalName,
@@ -214,10 +221,12 @@ class FileService {
     }
   }
 
-  async organizeFiles(projectId: string): Promise<{ [category: string]: any[] }> {
+  async organizeFiles(
+    projectId: string
+  ): Promise<{ [category: string]: any[] }> {
     try {
       const documents = await storage.getDocuments(projectId);
-      
+
       const organized = documents.reduce((acc, doc) => {
         const category = doc.fileType || 'other';
         if (!acc[category]) {
@@ -246,7 +255,10 @@ class FileService {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
 
-  private async findFileByChecksum(checksum: string, projectId: string): Promise<any | null> {
+  private async findFileByChecksum(
+    checksum: string,
+    projectId: string
+  ): Promise<any | null> {
     try {
       return await storage.getDocumentByChecksum(checksum, projectId);
     } catch (error) {
@@ -261,14 +273,14 @@ class FileService {
   }> {
     try {
       const documents = await storage.getDocuments(projectId);
-      
+
       const stats = {
         totalFiles: documents.length,
         totalSize: documents.reduce((sum, doc) => sum + doc.size, 0),
-        byType: {} as { [type: string]: { count: number; size: number } }
+        byType: {} as { [type: string]: { count: number; size: number } },
       };
 
-      documents.forEach(doc => {
+      documents.forEach((doc) => {
         const type = doc.fileType || 'other';
         if (!stats.byType[type]) {
           stats.byType[type] = { count: 0, size: 0 };
@@ -291,7 +303,7 @@ class FileService {
       const documentGroups = new Map<string, any[]>();
 
       // Group documents by parent or by themselves if no parent
-      documents.forEach(doc => {
+      documents.forEach((doc) => {
         const key = doc.parentDocumentId || doc.id;
         if (!documentGroups.has(key)) {
           documentGroups.set(key, []);
