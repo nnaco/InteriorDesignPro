@@ -308,7 +308,7 @@ function InvoicesTable({ invoices }: InvoicesTableProps) {
               </div>
               <div className="text-right">
                 <div className="font-bold text-lg">
-                  ${invoice.total.toFixed(2)}
+                  ${parseFloat(invoice.total).toFixed(2)}
                 </div>
                 <Badge className={getStatusColor(invoice.status)}>
                   {invoice.status}

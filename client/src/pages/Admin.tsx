@@ -5,6 +5,21 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import {
   Table,
   TableBody,
   TableCell,
@@ -33,10 +48,23 @@ import { apiRequest } from '@/lib/queryClient';
 import { isUnauthorizedError } from '@/lib/authUtils';
 import { UserPlus, Search, MoreHorizontal, Shield } from 'lucide-react';
 import { format } from 'date-fns';
+import { z } from 'zod';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+
+const userFormSchema = z.object({
+  email: z.string().email('Invalid email address'),
+  firstName: z.string().min(2, 'First name must be at least 2 characters'),
+  lastName: z.string().min(2, 'Last name must be at least 2 characters'),
+  role: z.enum(['admin', 'manager', 'designer', 'contractor', 'client']),
+});
+
+type UserFormData = z.infer<typeof userFormSchema>;
 
 export default function Admin() {
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   const { toast } = useToast();
   const { isAuthenticated, isLoading, user } = useAuth();
@@ -196,6 +224,54 @@ export default function Admin() {
     );
   }
 
+  const createUserMutation = useMutation({
+    mutationFn: async (data: UserFormData) => {
+      await apiRequest('POST', '/api/users', data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      setIsCreateDialogOpen(false);
+      form.reset();
+      toast({
+        title: 'Success',
+        description: 'User created successfully',
+      });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: 'Unauthorized',
+          description: 'You are logged out. Logging in again...',
+          variant: 'destructive',
+        });
+        setTimeout(() => {
+          window.location.href = '/api/login';
+        }, 500);
+        return;
+      }
+      console.error('Error creating user:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to create user',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const form = useForm<UserFormData>({
+    resolver: zodResolver(userFormSchema),
+    defaultValues: {
+      email: '',
+      firstName: '',
+      lastName: '',
+      role: 'client',
+    },
+  });
+
+  const onSubmit = (data: UserFormData) => {
+    createUserMutation.mutate(data);
+  };
+
   return (
     <MainLayout title="Admin Panel">
       <div className="space-y-6">
@@ -204,10 +280,123 @@ export default function Admin() {
           <h2 className="text-2xl font-bold text-foreground">
             User Management
           </h2>
-          <Button>
-            <UserPlus className="h-4 w-4 mr-2" />
-            Add User
-          </Button>
+          <Dialog
+            open={isCreateDialogOpen}
+            onOpenChange={(isOpen) => {
+              if (!isOpen) {
+                form.reset();
+              }
+              setIsCreateDialogOpen(isOpen);
+            }}
+          >
+            <DialogTrigger asChild>
+              <Button>
+                <UserPlus className="h-4 w-4 mr-2" />
+                Add User
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[500px]">
+              <DialogHeader>
+                <DialogTitle>Add New User</DialogTitle>
+              </DialogHeader>
+              <Form {...form}>
+                <form
+                  onSubmit={form.handleSubmit(onSubmit)}
+                  className="space-y-4"
+                >
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Enter email"
+                            type="email"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="firstName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>First Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter first name" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="lastName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Last Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter last name" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="role"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Role</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select role" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="admin">Admin</SelectItem>
+                            <SelectItem value="client">Client</SelectItem>
+                            <SelectItem value="contractor">
+                              Contractor
+                            </SelectItem>
+                            <SelectItem value="designer">Designer</SelectItem>
+                            <SelectItem value="manager">Manager</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <div className="flex justify-end space-x-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setIsCreateDialogOpen(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      type="submit"
+                      disabled={createUserMutation.isPending}
+                    >
+                      {createUserMutation.isPending
+                        ? 'Creating...'
+                        : 'Create User'}
+                    </Button>
+                  </div>
+                </form>
+              </Form>
+            </DialogContent>
+          </Dialog>
         </div>
 
         {/* User Management */}

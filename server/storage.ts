@@ -15,6 +15,7 @@ import {
   templateMilestones,
   clientPortalAccess,
   type User,
+  type InsertUser,
   type UpsertUser,
   type Project,
   type InsertProject,
@@ -111,6 +112,11 @@ export class DatabaseStorage implements IStorage {
   async getUserByEmail(email: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.email, email));
     return user;
+  }
+
+  async createUser(user: InsertUser): Promise<User> {
+    const [newUser] = await db.insert(users).values(user).returning();
+    return newUser;
   }
 
   async updateUserOnRegistration(
@@ -693,16 +699,17 @@ export class DatabaseStorage implements IStorage {
     return db
       .select({
         id: projects.id,
+        clientName: projects.clientName,
         name: projects.name,
         description: projects.description,
         status: projects.status,
         budget: projects.budget,
         startDate: projects.startDate,
+        endDate: projects.endDate,
         dueDate: projects.endDate,
         createdAt: projects.createdAt,
         updatedAt: projects.updatedAt,
         createdBy: projects.createdBy,
-        clientId: projects.clientId,
         progress: projects.progress,
       })
       .from(projects)

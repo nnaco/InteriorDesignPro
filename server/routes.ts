@@ -10,6 +10,7 @@ import {
   insertMessageSchema,
   insertNotificationSchema,
   insertActivitySchema,
+  insertUserSchema,
 } from '@shared/schema';
 import {
   errorHandler,
@@ -67,45 +68,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // WebSocket setup for real-time messaging
   const httpServer = createServer(app);
-  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+  // const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
 
-  wss.on('connection', (ws: WebSocket, req: any) => {
-    console.log('WebSocket connection established');
+  // wss.on('connection', (ws: WebSocket, req: any) => {
+  //   console.log('WebSocket connection established');
 
-    ws.on('message', async (message: string) => {
-      try {
-        const data = JSON.parse(message);
+  //   ws.on('message', async (message: string) => {
+  //     try {
+  //       const data = JSON.parse(message);
 
-        if (data.type === 'send_message') {
-          // Store message in database
-          const newMessage = await storage.createMessage({
-            content: data.content,
-            senderId: data.senderId,
-            recipientId: data.recipientId,
-            conversationId: data.conversationId,
-          });
+  //       if (data.type === 'send_message') {
+  //         // Store message in database
+  //         const newMessage = await storage.createMessage({
+  //           content: data.content,
+  //           senderId: data.senderId,
+  //           recipientId: data.recipientId,
+  //           conversationId: data.conversationId,
+  //         });
 
-          // Broadcast to all connected clients
-          wss.clients.forEach((client) => {
-            if (client.readyState === WebSocket.OPEN) {
-              client.send(
-                JSON.stringify({
-                  type: 'new_message',
-                  message: newMessage,
-                })
-              );
-            }
-          });
-        }
-      } catch (error) {
-        console.error('WebSocket message error:', error);
-      }
-    });
+  //         // Broadcast to all connected clients
+  //         wss.clients.forEach((client) => {
+  //           if (client.readyState === WebSocket.OPEN) {
+  //             client.send(
+  //               JSON.stringify({
+  //                 type: 'new_message',
+  //                 message: newMessage,
+  //               })
+  //             );
+  //           }
+  //         });
+  //       }
+  //     } catch (error) {
+  //       console.error('WebSocket message error:', error);
+  //     }
+  //   });
 
-    ws.on('close', () => {
-      console.log('WebSocket connection closed');
-    });
-  });
+  //   ws.on('close', () => {
+  //     console.log('WebSocket connection closed');
+  //   });
+  // });
 
   // Health check endpoint (no auth required)
   app.get('/api/health', (req, res) => {
@@ -308,6 +309,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { projectId } = req.query;
       const userId = req.user.sub;
       const tasks = await storage.getTasks(projectId as string, userId);
+      console.log('tasks', tasks);
       res.json(tasks);
     } catch (error) {
       console.error('Error fetching tasks:', error);
@@ -391,6 +393,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post('/api/users', isAuthenticated, async (req, res) => {
+    try {
+      const userData = insertUserSchema.parse({
+        ...req.body,
+        email: req.body.email.toLowerCase(),
+      });
+      await storage.createUser(userData);
+      res.json(null);
+    } catch (error) {
+      console.error('Error creating user:', error);
+      res.status(500).json({ message: 'Failed to create user' });
+    }
+  });
   app.put('/api/users/:id/role', isAuthenticated, async (req, res) => {
     try {
       const { role } = req.body;
@@ -795,8 +810,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     '/api/invoices',
     isAuthenticated,
     asyncHandler(async (req: any, res) => {
-      const { projectId, clientId } = req.query;
-      const invoices = await storage.getInvoices({ projectId, clientId });
+      const { projectId } = req.query;
+      const invoices = await storage.getInvoices({ projectId });
       res.json(invoices);
     })
   );
@@ -812,6 +827,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const invoice = await storage.createInvoice({
         ...invoiceData,
+        dueDate: new Date(invoiceData.dueDate),
         invoiceNumber,
         issueDate: new Date(),
       });

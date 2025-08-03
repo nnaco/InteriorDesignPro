@@ -4,18 +4,7 @@ import path from 'path';
 import runtimeErrorOverlay from '@replit/vite-plugin-runtime-error-modal';
 
 export default defineConfig({
-  plugins: [
-    react(),
-    runtimeErrorOverlay(),
-    ...(process.env.NODE_ENV !== 'production' &&
-    process.env.REPL_ID !== undefined
-      ? [
-          await import('@replit/vite-plugin-cartographer').then((m) =>
-            m.cartographer()
-          ),
-        ]
-      : []),
-  ],
+  plugins: [react(), runtimeErrorOverlay()],
   resolve: {
     alias: {
       '@': path.resolve(import.meta.dirname, 'client', 'src'),
@@ -32,6 +21,10 @@ export default defineConfig({
     fs: {
       strict: true,
       deny: ['**/.*'],
+    },
+    port: 5173,
+    proxy: {
+      '/api': 'http://localhost:5001',
     },
   },
 });

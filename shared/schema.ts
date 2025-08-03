@@ -311,7 +311,6 @@ export const insertUserSchema = createInsertSchema(users).pick({
   email: true,
   firstName: true,
   lastName: true,
-  profileImageUrl: true,
   role: true,
 });
 
@@ -348,6 +347,7 @@ export const insertActivitySchema = createInsertSchema(activities).omit({
 });
 
 // Types
+export type InsertUser = z.infer<typeof insertUserSchema>;
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
 export type InsertProject = z.infer<typeof insertProjectSchema>;

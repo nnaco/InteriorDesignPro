@@ -34,10 +34,10 @@ interface Invoice {
   status: 'draft' | 'sent' | 'paid' | 'overdue';
   issueDate: string;
   dueDate: string;
-  subtotal: number;
-  taxRate: number;
-  taxAmount: number;
-  total: number;
+  subtotal: string;
+  taxRate: string;
+  taxAmount: string;
+  total: string;
   items: InvoiceItem[];
   notes?: string;
 }
@@ -72,10 +72,11 @@ export function InvoiceGenerator({
   const { data: clients = [] } = useQuery({
     queryKey: ['/api/clients'],
   });
+  console.log('clie', clientId);
 
   // Fetch existing invoices
   const { data: invoices = [] } = useQuery<Invoice[]>({
-    queryKey: ['/api/invoices', { projectId, clientId }],
+    queryKey: [`/api/invoices?clientId=${clientId}&projectId=${projectId}`],
   });
 
   // Fetch time entries for auto-generation
@@ -87,10 +88,7 @@ export function InvoiceGenerator({
   // Create invoice mutation
   const createInvoice = useMutation({
     mutationFn: async (invoiceData: any) => {
-      return apiRequest('/api/invoices', {
-        method: 'POST',
-        body: invoiceData,
-      });
+      return apiRequest('POST', '/api/invoices', invoiceData);
     },
     onSuccess: () => {
       toast({
@@ -100,7 +98,7 @@ export function InvoiceGenerator({
       setIsCreating(false);
       resetForm();
     },
-    onError: () => {
+    onError: (err) => {
       toast({
         title: 'Error',
         description: 'Failed to create invoice. Please try again.',
@@ -378,7 +376,7 @@ export function InvoiceGenerator({
                       type="number"
                       placeholder="Qty"
                       min="0"
-                      step="0.01"
+                      // step="0.01"
                       value={item.quantity}
                       onChange={(e) =>
                         updateItem(
@@ -394,7 +392,7 @@ export function InvoiceGenerator({
                       type="number"
                       placeholder="Rate"
                       min="0"
-                      step="0.01"
+                      // step="0.01"
                       value={item.rate}
                       onChange={(e) =>
                         updateItem(
@@ -511,7 +509,9 @@ function InvoiceList({ invoices }: InvoiceListProps) {
               </p>
             </div>
             <div className="text-right">
-              <div className="font-bold">${invoice.total.toFixed(2)}</div>
+              <div className="font-bold">
+                ${parseFloat(invoice.total).toFixed(2)}
+              </div>
               <Badge className={getStatusColor(invoice.status)}>
                 {invoice.status}
               </Badge>

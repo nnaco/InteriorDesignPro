@@ -17,9 +17,13 @@ import { TimeTracker } from '@/components/time-tracking/TimeTracker';
 import { InvoiceGenerator } from '@/components/invoicing/InvoiceGenerator';
 import { ProjectTemplates } from '@/components/templates/ProjectTemplates';
 import { format } from 'date-fns';
+import { isUnauthorizedError } from '@/lib/authUtils';
+import { useToast } from '@/hooks/use-toast';
 
 export default function ProjectManagement() {
   const [selectedProject, setSelectedProject] = useState<string>('');
+
+  const { toast } = useToast();
 
   // Fetch projects for selection
   const { data: projects = [] } = useQuery({
@@ -27,7 +31,7 @@ export default function ProjectManagement() {
   });
 
   return (
-    <MainLayout>
+    <MainLayout title="Project Management">
       <div className="p-6 space-y-6">
         <div className="flex items-center justify-between">
           <div>

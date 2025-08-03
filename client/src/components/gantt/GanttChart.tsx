@@ -8,7 +8,7 @@ import { Calendar, Clock, Users } from 'lucide-react';
 interface GanttTask {
   id: string;
   title: string;
-  startDate: string;
+  createdAt: string;
   dueDate: string;
   status: string;
   priority: string;
@@ -23,7 +23,7 @@ interface GanttChartProps {
 
 export function GanttChart({ projectId }: GanttChartProps) {
   const { data: tasks = [], isLoading } = useQuery<GanttTask[]>({
-    queryKey: ['/api/tasks', projectId],
+    queryKey: [`/api/tasks?projectId=${projectId}`],
     enabled: !!projectId,
   });
 
@@ -67,7 +67,7 @@ export function GanttChart({ projectId }: GanttChartProps) {
 
   // Calculate timeline bounds
   const allDates = tasks.flatMap((task) => [
-    parseISO(task.startDate),
+    parseISO(task.createdAt),
     parseISO(task.dueDate),
   ]);
   const minDate = new Date(Math.min(...allDates.map((d) => d.getTime())));
@@ -113,7 +113,7 @@ export function GanttChart({ projectId }: GanttChartProps) {
   };
 
   const calculateTaskPosition = (task: GanttTask) => {
-    const startDate = parseISO(task.startDate);
+    const startDate = parseISO(task.createdAt);
     const endDate = parseISO(task.dueDate);
     const startOffset = differenceInDays(startDate, minDate);
     const duration = differenceInDays(endDate, startDate) + 1;

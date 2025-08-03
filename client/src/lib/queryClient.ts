@@ -33,8 +33,11 @@ export const getQueryFn: <T>(options: {
       credentials: 'include',
     });
 
-    if (unauthorizedBehavior === 'returnNull' && res.status === 401) {
-      return null;
+    if (res.status === 401) {
+      setTimeout(() => {
+        window.location.href = '/api/login';
+      }, 500);
+      return;
     }
 
     await throwIfResNotOk(res);
