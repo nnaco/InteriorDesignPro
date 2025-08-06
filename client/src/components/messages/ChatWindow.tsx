@@ -74,7 +74,7 @@ export function ChatWindow({ conversationId, recipientId }: ChatWindowProps) {
       content: message,
       senderId: user.id,
       recipientId: recipientId,
-      conversationId: conversationId || `${user.id}-${recipientId}`,
+      conversationId: conversationId || `${user.id}_${recipientId}`,
     };
 
     ws.send(JSON.stringify(messageData));
@@ -130,14 +130,14 @@ export function ChatWindow({ conversationId, recipientId }: ChatWindowProps) {
               </div>
             </div>
           </div>
-          <div className="flex space-x-2">
+          {/* <div className="flex space-x-2">
             <Button variant="ghost" size="sm">
               <Phone className="h-4 w-4" />
             </Button>
             <Button variant="ghost" size="sm">
               <Video className="h-4 w-4" />
             </Button>
-          </div>
+          </div> */}
         </div>
       </CardHeader>
 
@@ -200,9 +200,9 @@ export function ChatWindow({ conversationId, recipientId }: ChatWindowProps) {
 
       <div className="p-4 border-t border-border">
         <div className="flex space-x-2">
-          <Button variant="ghost" size="sm">
+          {/* <Button variant="ghost" size="sm">
             <Paperclip className="h-4 w-4" />
-          </Button>
+          </Button> */}
           <Input
             placeholder="Type a message..."
             value={message}

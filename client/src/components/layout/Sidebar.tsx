@@ -19,15 +19,25 @@ import {
 } from 'lucide-react';
 
 const navigation = [
-  { name: 'Dashboard', href: '/', icon: Home },
-  { name: 'Projects', href: '/projects', icon: FolderOpen },
-  { name: 'Project Management', href: '/project-management', icon: BarChart3 },
-  { name: 'Client Portal', href: '/client-portal', icon: UserCheck },
-  { name: 'Tasks', href: '/tasks', icon: CheckSquare },
-  { name: 'Team', href: '/team', icon: Users },
-  { name: 'Documents', href: '/documents', icon: FileText },
-  { name: 'Calendar', href: '/calendar', icon: Calendar },
-  { name: 'Messages', href: '/messages', icon: MessageSquare },
+  { name: 'Dashboard', href: '/', icon: Home, isPublic: false },
+  { name: 'Projects', href: '/projects', icon: FolderOpen, isPublic: false },
+  {
+    name: 'Project Management',
+    href: '/project-management',
+    icon: BarChart3,
+    isPublic: false,
+  },
+  {
+    name: 'Client Portal',
+    href: '/client-portal',
+    icon: UserCheck,
+    isPublic: true,
+  },
+  { name: 'Tasks', href: '/tasks', icon: CheckSquare, isPublic: false },
+  { name: 'Team', href: '/team', icon: Users, isPublic: false },
+  { name: 'Documents', href: '/documents', icon: FileText, isPublic: false },
+  { name: 'Calendar', href: '/calendar', icon: Calendar, isPublic: false },
+  { name: 'Messages', href: '/messages', icon: MessageSquare, isPublic: false },
 ];
 
 interface SidebarProps {
@@ -81,28 +91,43 @@ export function Sidebar({ className, onNavigate }: SidebarProps) {
         </div>
 
         <nav className="space-y-2">
-          {navigation.map((item) => {
-            const isActive =
-              location === item.href ||
-              (item.href !== '/' && location.startsWith(item.href));
+          {navigation
+            .filter((item) => {
+              if (user?.role === 'client' && item.isPublic) {
+                return true; // Show public items for clients
+              }
+              if (
+                (user?.role === 'admin' ||
+                  user?.role === 'manager' ||
+                  user?.role === 'designer') &&
+                !item.isPublic
+              ) {
+                return true; // Admins, managers, and designers see all items
+              }
+              return false;
+            })
+            .map((item) => {
+              const isActive =
+                location === item.href ||
+                (item.href !== '/' && location.startsWith(item.href));
 
-            return (
-              <Link key={item.name} href={item.href}>
-                <span
-                  onClick={onNavigate}
-                  className={cn(
-                    'nav-item flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-colors',
-                    isActive
-                      ? 'active text-primary bg-primary-50'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
-                  )}
-                >
-                  <item.icon className="mr-3 h-5 w-5" />
-                  {item.name}
-                </span>
-              </Link>
-            );
-          })}
+              return (
+                <Link key={item.name} href={item.href}>
+                  <span
+                    onClick={onNavigate}
+                    className={cn(
+                      'nav-item flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-colors',
+                      isActive
+                        ? 'active text-primary bg-primary-50'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
+                    )}
+                  >
+                    <item.icon className="mr-3 h-5 w-5" />
+                    {item.name}
+                  </span>
+                </Link>
+              );
+            })}
         </nav>
       </div>
 

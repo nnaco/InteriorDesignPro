@@ -20,7 +20,7 @@ import ProjectManagement from '@/pages/ProjectManagement';
 import ClientPortalPage from '@/pages/ClientPortalPage';
 
 function Router() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
 
   if (isLoading) {
     return <div>Loading...</div>; // or a fancy spinner
@@ -30,13 +30,14 @@ function Router() {
     <Switch>
       {!isAuthenticated ? (
         <Route path="/" component={Landing} />
+      ) : user?.role === 'client' ? (
+        <Route path="/client-portal" component={ClientPortalPage} />
       ) : (
         <>
           <Route path="/" component={Dashboard} />
           <Route path="/projects" component={Projects} />
           <Route path="/projects/:id" component={Projects} />
           <Route path="/project-management" component={ProjectManagement} />
-          <Route path="/client-portal" component={ClientPortalPage} />
           <Route path="/tasks" component={Tasks} />
           <Route path="/team" component={Team} />
           <Route path="/documents" component={Documents} />

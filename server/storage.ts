@@ -88,7 +88,7 @@ export interface IStorage {
   createMessage(message: InsertMessage): Promise<Message>;
   getConversations(userId: string): Promise<any[]>;
   getMessages(conversationId: string): Promise<Message[]>;
-  markMessageAsRead(id: string): Promise<void>;
+  markConversationAsRead(id: string): Promise<void>;
 
   // Notification operations
   createNotification(notification: InsertNotification): Promise<Notification>;
@@ -378,8 +378,11 @@ export class DatabaseStorage implements IStorage {
       .orderBy(messages.createdAt);
   }
 
-  async markMessageAsRead(id: string): Promise<void> {
-    await db.update(messages).set({ isRead: true }).where(eq(messages.id, id));
+  async markConversationAsRead(id: string): Promise<void> {
+    await db
+      .update(messages)
+      .set({ isRead: true })
+      .where(eq(messages.conversationId, id));
   }
 
   // Notification operations

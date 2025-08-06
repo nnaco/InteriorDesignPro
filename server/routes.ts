@@ -68,45 +68,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // WebSocket setup for real-time messaging
   const httpServer = createServer(app);
-  // const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+  const wss = new WebSocketServer({ noServer: true });
 
-  // wss.on('connection', (ws: WebSocket, req: any) => {
-  //   console.log('WebSocket connection established');
+  httpServer.on('upgrade', (request, socket, head) => {
+    const { pathname } = new URL(
+      request.url || '',
+      `http://${request.headers.host}`
+    );
 
-  //   ws.on('message', async (message: string) => {
-  //     try {
-  //       const data = JSON.parse(message);
+    if (pathname === '/ws') {
+      wss.handleUpgrade(request, socket, head, (ws) => {
+        wss.emit('connection', ws, request);
+      });
+    }
+  });
 
-  //       if (data.type === 'send_message') {
-  //         // Store message in database
-  //         const newMessage = await storage.createMessage({
-  //           content: data.content,
-  //           senderId: data.senderId,
-  //           recipientId: data.recipientId,
-  //           conversationId: data.conversationId,
-  //         });
+  wss.on('connection', (ws: WebSocket, req: any) => {
+    console.log('WebSocket connection established');
 
-  //         // Broadcast to all connected clients
-  //         wss.clients.forEach((client) => {
-  //           if (client.readyState === WebSocket.OPEN) {
-  //             client.send(
-  //               JSON.stringify({
-  //                 type: 'new_message',
-  //                 message: newMessage,
-  //               })
-  //             );
-  //           }
-  //         });
-  //       }
-  //     } catch (error) {
-  //       console.error('WebSocket message error:', error);
-  //     }
-  //   });
+    ws.on('message', async (message: string) => {
+      try {
+        const data = JSON.parse(message);
 
-  //   ws.on('close', () => {
-  //     console.log('WebSocket connection closed');
-  //   });
-  // });
+        if (data.type === 'send_message') {
+          // Store message in database
+          const newMessage = await storage.createMessage({
+            content: data.content,
+            senderId: data.senderId,
+            recipientId: data.recipientId,
+            conversationId: data.conversationId,
+          });
+
+          // Broadcast to all connected clients
+          wss.clients.forEach((client) => {
+            if (client.readyState === WebSocket.OPEN) {
+              client.send(
+                JSON.stringify({
+                  type: 'new_message',
+                  message: newMessage,
+                })
+              );
+            }
+          });
+        }
+      } catch (error) {
+        console.error('WebSocket message error:', error);
+      }
+    });
+
+    ws.on('close', () => {
+      console.log('WebSocket connection closed');
+    });
+  });
 
   // Health check endpoint (no auth required)
   app.get('/api/health', (req, res) => {
@@ -309,7 +322,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { projectId } = req.query;
       const userId = req.user.sub;
       const tasks = await storage.getTasks(projectId as string, userId);
-      console.log('tasks', tasks);
       res.json(tasks);
     } catch (error) {
       console.error('Error fetching tasks:', error);
@@ -517,6 +529,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     async (req, res) => {
       try {
         const messages = await storage.getMessages(req.params.conversationId);
+        if (messages.length) {
+          await storage.markConversationAsRead(req.params.conversationId);
+        }
         res.json(messages);
       } catch (error) {
         console.error('Error fetching messages:', error);
