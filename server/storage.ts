@@ -46,7 +46,18 @@ import {
   type InsertClientPortalAccess,
 } from '@shared/schema';
 import { db } from './db';
-import { eq, desc, and, or, ilike, sql, ne, gte, lte } from 'drizzle-orm';
+import {
+  eq,
+  desc,
+  and,
+  or,
+  ilike,
+  sql,
+  ne,
+  gte,
+  lte,
+  inArray,
+} from 'drizzle-orm';
 
 export interface IStorage {
   // User operations (required for Replit Auth)
@@ -590,11 +601,32 @@ export class DatabaseStorage implements IStorage {
     if (filters.clientId)
       conditions.push(eq(invoices.clientId, filters.clientId));
 
-    return await db
+    const invoiceList = await db
       .select()
       .from(invoices)
       .where(conditions.length > 0 ? and(...conditions) : undefined)
       .orderBy(desc(invoices.createdAt));
+
+    const invoiceIds = invoiceList.map((inv) => inv.id);
+
+    const invoiceItemsList = await db
+      .select()
+      .from(invoiceItems)
+      .where(inArray(invoiceItems.invoiceId, invoiceIds));
+
+    // Group items by invoiceId
+    const itemsMap = invoiceItemsList.reduce((acc, item) => {
+      if (item.invoiceId) {
+        if (!acc[item.invoiceId]) acc[item.invoiceId] = [];
+        acc[item.invoiceId].push(item);
+      }
+      return acc;
+    }, {} as Record<string, typeof invoiceItemsList>);
+
+    return invoiceList.map((invoice) => ({
+      ...invoice,
+      items: itemsMap[invoice.id] || [],
+    }));
   }
 
   async createInvoiceItem(item: InsertInvoiceItem): Promise<InvoiceItem> {

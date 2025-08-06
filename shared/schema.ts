@@ -371,6 +371,9 @@ export type Invoice = typeof invoices.$inferSelect;
 export type InsertInvoice = typeof invoices.$inferInsert;
 export type InvoiceItem = typeof invoiceItems.$inferSelect;
 export type InsertInvoiceItem = typeof invoiceItems.$inferInsert;
+export type InvoiceWithItems = typeof invoices.$inferSelect & {
+  items: InvoiceItem[];
+};
 export type ProjectTemplate = typeof projectTemplates.$inferSelect;
 export type InsertProjectTemplate = typeof projectTemplates.$inferInsert;
 export type TemplateTask = typeof templateTasks.$inferSelect;

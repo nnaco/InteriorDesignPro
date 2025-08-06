@@ -3,6 +3,13 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -15,8 +22,18 @@ import {
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { FileText, Download, Send, Plus, X, Calculator } from 'lucide-react';
+import {
+  FileText,
+  Delete,
+  Plus,
+  Trash2,
+  View,
+  X,
+  Calculator,
+} from 'lucide-react';
 import { format } from 'date-fns';
+import { InvoiceWithItems, Project, User } from '@shared/schema';
+import { InvoiceDownload } from './InvoiceDownload';
 
 interface InvoiceItem {
   id: string;
@@ -65,17 +82,20 @@ export function InvoiceGenerator({
   const { toast } = useToast();
 
   // Fetch projects and clients for selection
-  const { data: projects = [] } = useQuery({
+  const { data: projects = [] } = useQuery<Project[]>({
     queryKey: ['/api/projects'],
   });
 
-  const { data: clients = [] } = useQuery({
+  const project = projects.find((project) => project.id === projectId);
+
+  const { data: clients = [] } = useQuery<User[]>({
     queryKey: ['/api/clients'],
   });
-  console.log('clie', clientId);
+
+  const client = clients.find((client) => client.id === clientId);
 
   // Fetch existing invoices
-  const { data: invoices = [] } = useQuery<Invoice[]>({
+  const { data: invoices = [] } = useQuery<InvoiceWithItems[]>({
     queryKey: [`/api/invoices?clientId=${clientId}&projectId=${projectId}`],
   });
 
@@ -233,7 +253,14 @@ export function InvoiceGenerator({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <InvoiceList invoices={invoices} />
+          <InvoiceList
+            clientName={
+              `${client?.firstName ?? ''} ${client?.lastName ?? ''}`.trim() ||
+              'N/A'
+            }
+            invoices={invoices}
+            projectName={project?.name ?? ''}
+          />
         </CardContent>
       </Card>
     );
@@ -472,10 +499,13 @@ export function InvoiceGenerator({
 }
 
 interface InvoiceListProps {
-  invoices: Invoice[];
+  clientName: string;
+  invoices: InvoiceWithItems[];
+  projectName: string;
 }
 
-function InvoiceList({ invoices }: InvoiceListProps) {
+function InvoiceList({ clientName, invoices, projectName }: InvoiceListProps) {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   if (!invoices.length) {
     return (
       <div className="text-center py-8 text-gray-500">
@@ -510,22 +540,100 @@ function InvoiceList({ invoices }: InvoiceListProps) {
             </div>
             <div className="text-right">
               <div className="font-bold">
-                ${parseFloat(invoice.total).toFixed(2)}
+                ${parseFloat(invoice.total ?? '').toFixed(2)}
               </div>
-              <Badge className={getStatusColor(invoice.status)}>
+              {/* <Badge className={getStatusColor(invoice.status)}>
                 {invoice.status}
-              </Badge>
+              </Badge> */}
             </div>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm">
-              <Download className="h-4 w-4 mr-2" />
-              Download
-            </Button>
-            <Button variant="outline" size="sm">
-              <Send className="h-4 w-4 mr-2" />
-              Send
-            </Button>
+            <Dialog
+              open={isDialogOpen}
+              onOpenChange={(isOpen) => {
+                if (!isOpen) {
+                  // form.reset();
+                }
+                setIsDialogOpen(isOpen);
+              }}
+            >
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <View className="h-4 w-4 mr-2" />
+                  View
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle className="uppercase">
+                    Invoice Details
+                  </DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <p>
+                    <strong>Invoice Number:</strong> {invoice.invoiceNumber}
+                  </p>
+                  <p>
+                    <strong>Date Issued:</strong>{' '}
+                    {invoice.issueDate
+                      ? format(new Date(invoice.issueDate), 'MMM d, yyyy')
+                      : 'N/A'}
+                  </p>
+                  <p>
+                    <strong>Client:</strong> {clientName}
+                  </p>
+                  <p>
+                    <strong>Project:</strong> {projectName}
+                  </p>
+                  {/* <div>
+                    <strong>Status:</strong>{' '}
+                    <Badge className={getStatusColor(invoice.status)}>
+                      {invoice.status}
+                    </Badge>
+                  </div> */}
+                  <div className="space-y-2">
+                    <strong>Items:</strong>
+                    <ul className="list-disc pl-5">
+                      {invoice.items.map((item) => (
+                        <li key={item.id}>
+                          {item.description} - Qty: {item.quantity}, Rate: ₦
+                          {parseFloat(item.rate ?? '').toFixed(2)}, Amount: ₦
+                          {parseFloat(item.amount ?? '').toFixed(2)}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <p>
+                    <strong>Notes:</strong> {invoice.notes || 'N/A'}
+                  </p>
+                  <p>
+                    <strong>Subtotal:</strong> ₦
+                    {parseFloat(invoice.subtotal ?? '').toFixed(2)}
+                  </p>
+                  <p>
+                    <strong>Tax ({invoice.taxRate ?? 0}%):</strong> ₦
+                    {parseFloat(invoice.taxAmount ?? '').toFixed(2)}
+                  </p>
+                  <p>
+                    <strong>Total:</strong> ₦
+                    {parseFloat(invoice.total ?? '').toFixed(2)}
+                  </p>
+                  <Button>
+                    <InvoiceDownload
+                      clientName={clientName}
+                      companyName="Interior Design PRO"
+                      invoice={invoice}
+                      projectTitle={projectName}
+                    />
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+
+            {/* <Button variant="outline" size="sm">
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete
+            </Button> */}
           </div>
         </div>
       ))}

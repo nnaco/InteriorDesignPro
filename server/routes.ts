@@ -33,6 +33,7 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import { z } from 'zod';
+import { nanoid } from 'nanoid';
 
 // Configure multer for file uploads
 const uploadDir = path.join(process.cwd(), 'uploads');
@@ -838,7 +839,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { items, ...invoiceData } = req.body;
 
       // Generate invoice number
-      const invoiceNumber = `INV-${Date.now()}`;
+      const invoiceNumber = `INV-${nanoid(10)}`;
 
       const invoice = await storage.createInvoice({
         ...invoiceData,
